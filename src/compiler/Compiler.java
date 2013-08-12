@@ -1,33 +1,17 @@
 package compiler;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 import org.apache.commons.io.FileUtils;
 
 import ui.Callback;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class Compiler {
-	private static ListeningExecutorService executor = MoreExecutors.listeningDecorator(
-		Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build())
-	);
+	private static ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build());
 	
 	private final Language language;
 	
@@ -76,7 +60,7 @@ public class Compiler {
 	 * @param err Appender to send errors to.
 	 * @param callback The callback to call when the run is finished.
 	 */
-	public ListenableFuture<?> runFile(final String contents, final String input, final Appender out, final Appender err, final Appender info, final Callback<Void> finishedCallback) {
+	public Future<?> runFile(final String contents, final String input, final Appender out, final Appender err, final Appender info, final Callback<Void> finishedCallback) {
 		return executor.submit(new Callable<Void>() {
 			public Void call() throws Exception {
 				runFileSync(contents, input, out, err, info, finishedCallback);
@@ -90,8 +74,6 @@ public class Compiler {
 		Process compilerProcess = null;
 		Process runProcess = null;
 		
-		List<Future<?>> tasks = new ArrayList<>();
-		
 		try {
 			String name = language.getFileName(contents);
 			
@@ -102,23 +84,26 @@ public class Compiler {
 			
 			compilerProcess = language.createCompiler(dir, name);
 			if(compilerProcess != null) {
-				tasks.add(executor.submit(new StreamReader("Compiler Output", compilerProcess.getInputStream(), out, info)));
-				tasks.add(executor.submit(new StreamReader("Compiler Error", compilerProcess.getErrorStream(), err, info)));
-				compilerProcess.waitFor();
+				executor.submit(new StreamReader("Compiler Output", compilerProcess.getInputStream(), out, info));
+				executor.submit(new StreamReader("Compiler Error", compilerProcess.getErrorStream(), err, info));
+				int result = compilerProcess.waitFor();
+				compilerProcess = null;
+				if(result != 0) {
+					return;
+				}
 			}
 			
 			runProcess = language.runProgram(dir, name);
 			
-			tasks.add(executor.submit(new StreamReader("Output", runProcess.getInputStream(), out, info)));
-			tasks.add(executor.submit(new StreamReader("Error", runProcess.getErrorStream(), err, info)));
+			executor.submit(new StreamReader("Output", runProcess.getInputStream(), out, info));
+			executor.submit(new StreamReader("Error", runProcess.getErrorStream(), err, info));
 
 			try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(runProcess.getOutputStream()))) {
 				writer.append(input);
 			}
 			
 			runProcess.waitFor();
-			
-			info.append("Done");
+			runProcess = null;
 		} catch(IOException e) {
 			info.append("ERROR: IOException running program: " + e.getMessage() + "\n");
 			e.printStackTrace();
@@ -139,10 +124,6 @@ public class Compiler {
 			}
 			
 			finishedCallback.onCallback(null);
-			
-			for(Future<?> task:tasks) {
-				task.cancel(true);
-			}
 		}
 	}
 }

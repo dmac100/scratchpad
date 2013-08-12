@@ -1,21 +1,15 @@
 package controller;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
+import java.util.concurrent.Future;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.widgets.Display;
 
-import ui.Callback;
-import ui.ConsoleText;
-import ui.EditorText;
-import ui.InputText;
+import ui.*;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import compiler.Appender;
+import compiler.*;
 import compiler.Compiler;
-import compiler.Language;
 
 public class MainController {
 	private final EditorText editorText;
@@ -23,7 +17,7 @@ public class MainController {
 	private final ConsoleText consoleText;
 	
 	private Language language;
-	private ListenableFuture<?> runningProgram;
+	private Future<?> runningProgram;
 	private Callback<Boolean> runningChangedCallback;
 
 	class ConsoleOutputStream extends OutputStream {
@@ -92,8 +86,6 @@ public class MainController {
 				fireRunningChanged(false);
 			}
 		});
-		
-		consoleText.clear();
 		
 		fireRunningChanged(true);
 	}
