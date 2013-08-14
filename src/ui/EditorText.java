@@ -110,7 +110,7 @@ public class EditorText {
 					}
 				}
 				
-				// Scroll or Ctrl+Up/Down.
+				// Scroll on Ctrl+Up/Down.
 				if((event.stateMask & SWT.CTRL) > 0) {
 					if(event.keyCode == SWT.ARROW_UP) {
 						styledText.setTopPixel(styledText.getTopPixel() - 20);
@@ -119,6 +119,16 @@ public class EditorText {
 					}
 				}
 				
+				// Move line on Alt+Up/Down.
+				if((event.stateMask & SWT.ALT) > 0) {
+					if(event.keyCode == SWT.ARROW_UP) {
+						moveLineUp();
+					} else if(event.keyCode == SWT.ARROW_DOWN) {
+						moveLineDown();
+					}
+				}
+				
+				// Smart home.
 				if(event.keyCode == SWT.HOME) {
 					if((event.stateMask & SWT.SHIFT) > 0) {
 						smartHomeSelect();
@@ -260,6 +270,52 @@ public class EditorText {
 		} else {
 			styledText.setCaretOffset(lineStartOffset);
 		}
+	}
+	
+	private void moveLineUp() {
+		int offset = styledText.getCaretOffset();
+		int line = styledText.getLineAtOffset(offset);
+		
+		if(line > 0) {
+			swapLineWithNext(line - 1);
+			styledText.setCaretOffset(getEndOfLineOffset(line - 1));
+		}
+	}
+	
+	private void moveLineDown() {
+		int offset = styledText.getCaretOffset();
+		int line = styledText.getLineAtOffset(offset);
+		
+		if(line + 1 < styledText.getLineCount()) {
+			swapLineWithNext(line);
+			styledText.setCaretOffset(getEndOfLineOffset(line + 1));
+		}
+	}
+	
+	private void swapLineWithNext(int line) {
+		boolean atLastLine = (line + 2 >= styledText.getLineCount());
+		
+		if(atLastLine) {
+			styledText.append("\r");
+		}
+		
+		int offset1 = styledText.getOffsetAtLine(line);
+		int offset2 = styledText.getOffsetAtLine(line + 1);
+		int offset3 = styledText.getOffsetAtLine(line + 2);
+		
+		String line1 = styledText.getTextRange(offset1, offset2 - offset1);
+		String line2 = styledText.getTextRange(offset2, offset3 - offset2);
+		
+		styledText.replaceTextRange(offset2, offset3 - offset2, line1);
+		styledText.replaceTextRange(offset1, offset2 - offset1, line2);
+		
+		if(atLastLine) {
+			styledText.replaceTextRange(styledText.getCharCount() - 1, 1, "");
+		}
+	}
+	
+	private int getEndOfLineOffset(int line) {
+		return styledText.getOffsetAtLine(line) + styledText.getLine(line).length();
 	}
 	
 	private void smartHomeSelect() {
