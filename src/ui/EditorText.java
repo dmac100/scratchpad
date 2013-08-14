@@ -119,6 +119,16 @@ public class EditorText {
 					}
 				}
 				
+				if(event.keyCode == SWT.HOME) {
+					if((event.stateMask & SWT.SHIFT) > 0) {
+						smartHomeSelect();
+						event.doit = false;
+					} else if(event.stateMask == 0) {
+						smartHome();
+						event.doit = false;
+					}
+				}
+				
 				eventBus.post(new EnabledChangedEvent());
 			}
 		});
@@ -234,6 +244,60 @@ public class EditorText {
 		styledText.setSelection(selection.x + selectionStartOffset, selection.y + selectionEndOffset);
 	}
 	
+	private void smartHome() {
+		int offset = styledText.getCaretOffset();
+		int line = styledText.getLineAtOffset(offset);
+		int lineStartOffset = styledText.getOffsetAtLine(line);
+		
+		int horizontalOffset = offset - lineStartOffset;
+		
+		String lineText = styledText.getLine(line);
+		
+		int firstNonWhiteSpace = lineText.replaceAll("\\S.*", "").length();
+		
+		if(horizontalOffset != firstNonWhiteSpace) {
+			styledText.setCaretOffset(lineStartOffset + firstNonWhiteSpace);
+		} else {
+			styledText.setCaretOffset(lineStartOffset);
+		}
+	}
+	
+	private void smartHomeSelect() {
+		int selectionStart = getSelectionStart();
+		
+		int offset = styledText.getCaretOffset();
+		int line = styledText.getLineAtOffset(offset);
+		int lineStartOffset = styledText.getOffsetAtLine(line);
+		
+		int horizontalOffset = offset - lineStartOffset;
+		
+		String lineText = styledText.getLine(line);
+		
+		int firstNonWhiteSpace = lineText.replaceAll("\\S.*", "").length();
+		
+		if(horizontalOffset != firstNonWhiteSpace) {
+			styledText.setSelection(selectionStart, lineStartOffset + firstNonWhiteSpace);
+		} else {
+			styledText.setSelection(selectionStart, lineStartOffset);
+		}
+	}
+
+	/**
+	 * Returns the starting offset of the current selection, or the caret position if there is no selection.
+	 */
+	private int getSelectionStart() {
+		Point range = styledText.getSelectionRange();
+		int offset1 = range.x;
+		int offset2 = range.x + range.y;
+		
+		// The caret is at the end, so the offset that is not the caret position.
+		if(styledText.getCaretOffset() == offset1) {
+			return offset2;
+		} else {
+			return offset1;
+		}
+	}
+
 	public void selectAll() {
 		styledText.setSelection(0, styledText.getText().length());
 	}
