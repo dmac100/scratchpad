@@ -131,10 +131,10 @@ public class EditorText {
 				// Smart home.
 				if(event.keyCode == SWT.HOME) {
 					if((event.stateMask & SWT.SHIFT) > 0) {
-						smartHomeSelect();
+						smartHome(true);
 						event.doit = false;
 					} else if(event.stateMask == 0) {
-						smartHome();
+						smartHome(false);
 						event.doit = false;
 					}
 				}
@@ -167,94 +167,73 @@ public class EditorText {
 	}
 	
 	private void newline() {
-		String line = styledText.getText().substring(0, styledText.getCaretOffset());
-		line = line.replaceAll("[\\r\\n]$", "");
-		int lineStart = lastIndexOf(line, '\r', '\n') + 1;
-		line = line.substring(lineStart);
-		String indent = line.replaceAll("\\S.*", "");
+		int line = styledText.getLineAtOffset(styledText.getCaretOffset());
+		String indent = styledText.getLine(line).replaceAll("\\S.*", "");
+		
 		styledText.insert("\n" + indent);
-		styledText.setCaretOffset(styledText.getCaretOffset() + indent.length() + 1);
+		styledText.setCaretOffset(getEndOfLineOffset(line + 1));
 	}
 	
 	private void indentSelection() {
 		Point selection = styledText.getSelection();
 		
-		String oldText = styledText.getText();
-		StringBuilder newText = new StringBuilder();
-		int selectionStartOffset = 0;
-		int selectionEndOffset = 0;
-
-		String line = styledText.getText().substring(0, selection.x);
-		int lineStart = lastIndexOf(line, '\r', '\n') + 1;
-
-		if(lineStart == 0) {
-			newText.append("\t");
-			selectionStartOffset += 1;
-			selectionEndOffset += 1;
+		int startLine = styledText.getLineAtOffset(selection.x);
+		int endLine = styledText.getLineAtOffset(selection.y);
+		
+		for(int line = startLine; line <= endLine; line++) {
+			int offset = styledText.getOffsetAtLine(line);
+			styledText.replaceTextRange(offset, 0, "\t");
 		}
 
-		for(int i = 0; i < oldText.length(); i++) {
-			char c = oldText.charAt(i);
-			newText.append(c);
-			if((c == '\n' || c == '\r') && i >= lineStart - 1 && i < selection.y) {
-				newText.append("\t");
-				if (i < selection.x) {
-					selectionStartOffset += 1;
-				}
-				selectionEndOffset += 1;
-			}
-		}
-
-		styledText.setText(newText.toString());
-		styledText.setSelection(selection.x + selectionStartOffset, selection.y + selectionEndOffset);
+		int lines = endLine - startLine + 1;
+		styledText.setSelection(selection.x + 1, selection.y + lines);
 	}
 	
 	private void unindentSelection() {
 		Point selection = styledText.getSelection();
 		
-		String oldText = styledText.getText();
-		StringBuilder newText = new StringBuilder();
-		int selectionStartOffset = 0;
-		int selectionEndOffset = 0;
-
-		String line = styledText.getText().substring(0, selection.x);
-		int lineStart = lastIndexOf(line, '\r', '\n') + 1;
-
-		int unindentLeft = 0;
+		int startLine = styledText.getLineAtOffset(selection.x);
+		int endLine = styledText.getLineAtOffset(selection.y);
 		
-		if(lineStart == 0) {
-			unindentLeft = 4;
-		}
+		int firstLineCharactersRemoved = 0;
+		int totalCharactersRemoved = 0;
+		
+		for(int line = startLine; line <= endLine; line++) {
+			int offset = styledText.getOffsetAtLine(line);
+			String lineText = styledText.getLine(line);
 
-		for(int i = 0; i < oldText.length(); i++) {
-			char c = oldText.charAt(i);
-			
-			if((c == ' ' || c == '\t') && unindentLeft > 0) {
-				int space = (c == '\t') ? 4 : 1;
-				unindentLeft -= space;
-				
-				if(i <= lineStart) {
-					selectionStartOffset -= 1;
-				}
-				selectionEndOffset -= 1;
-			} else {
-				newText.append(c);
+			int charactersToRemove = getUnindentSize(lineText);
+			if(line == startLine) {
+				firstLineCharactersRemoved += charactersToRemove;
 			}
+			totalCharactersRemoved += charactersToRemove;
 			
-			if(c != ' ' && c != '\t') {
-				unindentLeft = 0;
-			}
-			
-			if((c == '\n' || c == '\r') && i >= lineStart - 1 && i < selection.y) {
-				unindentLeft = 4;
-			}
+			styledText.replaceTextRange(offset, charactersToRemove, "");
+			styledText.setSelection(selection.x - firstLineCharactersRemoved, selection.y - totalCharactersRemoved);
 		}
-
-		styledText.setText(newText.toString());
-		styledText.setSelection(selection.x + selectionStartOffset, selection.y + selectionEndOffset);
 	}
 	
-	private void smartHome() {
+	/**
+	 * Returns the number of characters needed to be removed from the beginning of line to unindent it.
+	 */
+	private int getUnindentSize(String line) {
+		int indentSize = 0;
+		for(int i = 0; i < line.length(); i++) {
+			char c = line.charAt(i);
+			if(!Character.isWhitespace(c)) {
+				return i;
+			}
+			indentSize += (c == '\t') ? 4 : 1;
+			if(indentSize >= 4 || !Character.isWhitespace(c)) {
+				return i + 1;
+			}
+		}
+		return line.length();
+	}
+	
+	private void smartHome(boolean selectText) {
+		int selectionStart = getSelectionStart();
+		
 		int offset = styledText.getCaretOffset();
 		int line = styledText.getLineAtOffset(offset);
 		int lineStartOffset = styledText.getOffsetAtLine(line);
@@ -264,11 +243,19 @@ public class EditorText {
 		String lineText = styledText.getLine(line);
 		
 		int firstNonWhiteSpace = lineText.replaceAll("\\S.*", "").length();
-		
-		if(horizontalOffset != firstNonWhiteSpace) {
-			styledText.setCaretOffset(lineStartOffset + firstNonWhiteSpace);
+
+		if(selectText) {
+			if(horizontalOffset != firstNonWhiteSpace) {
+				styledText.setSelection(selectionStart, lineStartOffset + firstNonWhiteSpace);
+			} else {
+				styledText.setSelection(selectionStart, lineStartOffset);
+			}
 		} else {
-			styledText.setCaretOffset(lineStartOffset);
+			if(horizontalOffset != firstNonWhiteSpace) {
+				styledText.setCaretOffset(lineStartOffset + firstNonWhiteSpace);
+			} else {
+				styledText.setCaretOffset(lineStartOffset);
+			}
 		}
 	}
 	
@@ -317,26 +304,6 @@ public class EditorText {
 	private int getEndOfLineOffset(int line) {
 		return styledText.getOffsetAtLine(line) + styledText.getLine(line).length();
 	}
-	
-	private void smartHomeSelect() {
-		int selectionStart = getSelectionStart();
-		
-		int offset = styledText.getCaretOffset();
-		int line = styledText.getLineAtOffset(offset);
-		int lineStartOffset = styledText.getOffsetAtLine(line);
-		
-		int horizontalOffset = offset - lineStartOffset;
-		
-		String lineText = styledText.getLine(line);
-		
-		int firstNonWhiteSpace = lineText.replaceAll("\\S.*", "").length();
-		
-		if(horizontalOffset != firstNonWhiteSpace) {
-			styledText.setSelection(selectionStart, lineStartOffset + firstNonWhiteSpace);
-		} else {
-			styledText.setSelection(selectionStart, lineStartOffset);
-		}
-	}
 
 	/**
 	 * Returns the starting offset of the current selection, or the caret position if there is no selection.
@@ -359,49 +326,16 @@ public class EditorText {
 	}
 	
 	public void deleteLine() {
-		String s = styledText.getText();
-		int offset = styledText.getCaretOffset();
+		int line = styledText.getLineAtOffset(styledText.getCaretOffset());
 		
-		String prefix = s.substring(0, offset);
-		String suffix = s.substring(offset);
+		int lineStart = styledText.getOffsetAtLine(line);
+		int lineEnd = getEndOfLineOffset(line);
 		
-		int lastIndex = lastIndexOf(prefix, '\r', '\n');
-		if(lastIndex >= 0) {
-			prefix = prefix.substring(0, lastIndex + 1);
-		} else {
-			prefix = "";
+		if(lineEnd + 1 >= styledText.getCharCount()) {
+			styledText.append("\r");
 		}
 		
-		int firstIndex = indexOf(suffix, '\r', '\n');
-		if(firstIndex >= 0) {
-			suffix = suffix.substring(firstIndex + 1);
-		} else {
-			suffix = "";
-		}
-		
-		styledText.setText(prefix + suffix);
-		styledText.setSelection(prefix.length());
-	}
-	
-	private static int lastIndexOf(String s, char... cs) {
-		int index = -1;
-		for(char c:cs) {
-			index = Math.max(index, s.lastIndexOf(c));
-		}
-		return index;
-	}
-	
-	private static int indexOf(String s, char... cs) {
-		int index = -1;
-		for(char c:cs) {
-			int i = s.indexOf(c);
-			if(i != -1) {
-				if(i < index || index == -1) {
-					index = i;
-				}
-			}
-		}
-		return index;
+		styledText.replaceTextRange(lineStart, lineEnd - lineStart + 1, "");
 	}
 
 	public void refreshStyle() {
@@ -446,6 +380,9 @@ public class EditorText {
 		styledText.setStyleRanges(styleRanges);
 	}
 
+	/**
+	 * Returns the list of ParseResults so that it doesn't contain overlapping offsets.
+	 */
 	private List<ParseResult> filterResults(List<ParseResult> results) {
 		List<ParseResult> filtered = new ArrayList<>();
 		
