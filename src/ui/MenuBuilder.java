@@ -60,6 +60,10 @@ public class MenuBuilder {
 	}
 	
 	public void build() {
+		Menu oldMenu = shell.getMenuBar();
 		shell.setMenuBar(menubar);
+		if(oldMenu != null) {
+			oldMenu.dispose();
+		}
 	}
 }
