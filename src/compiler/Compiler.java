@@ -20,7 +20,7 @@ public class Compiler {
 		private Appender appender;
 		private Appender info;
 		private String name;
-
+		
 		public StreamReader(String name, InputStream inputStream, Appender appender, Appender info) {
 			try {
 				this.name = name;

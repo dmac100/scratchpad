@@ -38,6 +38,10 @@ public class ColorCache {
 		return getColor(new java.awt.Color(r, g, b));
 	}
 	
+	public Color getColor(RGB rgb) {
+		return getColor(rgb.red, rgb.green, rgb.blue);
+	}
+	
 	public void dispose() {
 		for(Color color:colors.values()) {
 			color.dispose();

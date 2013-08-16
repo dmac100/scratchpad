@@ -1,6 +1,7 @@
 package controller;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.Future;
 
 import org.apache.commons.io.FileUtils;
@@ -8,8 +9,8 @@ import org.eclipse.swt.widgets.Display;
 
 import ui.*;
 
-import compiler.*;
 import compiler.Compiler;
+import compiler.Language;
 
 public class MainController {
 	private final EditorText editorText;
@@ -19,12 +20,6 @@ public class MainController {
 	private Language language;
 	private Future<?> runningProgram;
 	private Callback<Boolean> runningChangedCallback;
-
-	class ConsoleOutputStream extends OutputStream {
-		public void write(int b) throws IOException {
-			consoleText.append(String.valueOf((char)b));
-		}
-	}
 
 	public MainController(EditorText editorText, InputText inputText, ConsoleText consoleText) {
 		this.editorText = editorText;
@@ -53,32 +48,13 @@ public class MainController {
 	public void compile() {
 		final String source = editorText.getText();
 		final String input = inputText.getText();
-		
-		class ConsoleAppender implements Appender {
-			private static final String COLOR_BLUE = "\u001B[34m";
-			private static final String COLOR_RED = "\u001B[31m";
-			private static final String COLOR_OFF = "\u001B[0m";
-			private String color;
-
-			public ConsoleAppender(String color) {
-				this.color = color;
-			}
-			
-			public void append(final String s) {
-				Display.getDefault().asyncExec(new Runnable() {
-					public void run() {
-						consoleText.append(color + s + COLOR_OFF);
-					}
-				});
-			}
-		}
 
 		stop();
 		consoleText.clear();
 		
-		ConsoleAppender out = new ConsoleAppender(ConsoleAppender.COLOR_OFF);
-		ConsoleAppender err = new ConsoleAppender(ConsoleAppender.COLOR_RED);
-		ConsoleAppender info = new ConsoleAppender(ConsoleAppender.COLOR_BLUE);
+		ConsoleAppender out = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_OFF);
+		ConsoleAppender err = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_RED);
+		ConsoleAppender info = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_BLUE);
 		
 		Compiler compiler = new Compiler(language);
 		runningProgram = compiler.runFile(source, input, out, err, info, new Callback<Void>() {
