@@ -52,7 +52,7 @@ public class MainController {
 		stop();
 		consoleText.clear();
 		
-		ConsoleAppender out = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_OFF);
+		ConsoleAppender out = new ConsoleAppender(consoleText, null);
 		ConsoleAppender err = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_RED);
 		ConsoleAppender info = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_BLUE);
 		

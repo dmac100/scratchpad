@@ -46,14 +46,15 @@ public class AnsiParser {
 	
 	/**
 	 * Parses text and extracts ANSI escape sequences from it.
-	 * Returns the modified text and a list of styles to apply,
-	 * with their positions offset by 'offset'.
+	 * Returns the modified text and a list of styles to apply.
 	 */
-	public ParseResult parseText(String text, int offset) {
+	public ParseResult parseText(AnsiStyle lastStyle, String text) {
 		List<AnsiStyle> styles = new ArrayList<AnsiStyle>();
 		StringBuffer modified = new StringBuffer();
 
 		int removedCharacters = 0;
+		
+		AnsiStyle style = new AnsiStyle(lastStyle);
 		
 		Matcher matcher = controlSequencePattern.matcher(text);
 		while(matcher.find()) {
@@ -63,9 +64,9 @@ public class AnsiParser {
 			
 			int[] codes = parseSequenceCodes(controlSequence);
 			
-			AnsiStyle newStyleRange = buildStyleRange(codes);
-			newStyleRange.start = offset + matcher.start() - removedCharacters;
-			styles.add(newStyleRange);
+			style = buildStyleRange(style, codes);
+			style.start = matcher.start() - removedCharacters;
+			styles.add(new AnsiStyle(style));
 			
 			removedCharacters += controlSequence.length();
 		}
@@ -79,7 +80,7 @@ public class AnsiParser {
 		
 		if(!styles.isEmpty()) {
 			AnsiStyle lastRange = styles.get(styles.size() - 1);
-			lastRange.length = offset + text.length() - lastRange.start - removedCharacters;
+			lastRange.length = text.length() - lastRange.start - removedCharacters;
 		}
 		
 		return new ParseResult(modified.toString(), styles);
@@ -110,8 +111,9 @@ public class AnsiParser {
 		}
 	}
 	
-	private AnsiStyle buildStyleRange(int[] codes) {
-		AnsiStyle newStyleRange = new AnsiStyle();
+	private AnsiStyle buildStyleRange(AnsiStyle lastStyle, int[] codes) {
+		AnsiStyle newStyleRange = new AnsiStyle(lastStyle);
+		
 		for (int i = 0; i < codes.length; i++) {
 			RGB tempColor = null;
 			switch (codes[i]) {

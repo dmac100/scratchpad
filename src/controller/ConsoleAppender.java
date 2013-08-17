@@ -25,13 +25,21 @@ public class ConsoleAppender implements Appender {
 	private Timer timer = new Timer(true);
 	private boolean timerRunning = false;
 
+	/**
+	 * Creates a ConsoleAppender that appends to consoleText with a color. If color
+	 * is null then the text is output with no color transformations.
+	 */
 	public ConsoleAppender(ConsoleText consoleText, String color) {
 		this.consoleText = consoleText;
 		this.color = color;
 	}
 	
 	public synchronized void append(final String s) {
-		buffer.append(color + s + COLOR_OFF);
+		if(color == null) {
+			buffer.append(s);
+		} else {
+			buffer.append(color + s + COLOR_OFF);
+		}
 		
 		if(!timerRunning) {
 			timerRunning = true;

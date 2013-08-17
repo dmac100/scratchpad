@@ -3,6 +3,8 @@ package ui;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
@@ -10,7 +12,7 @@ import org.eclipse.swt.widgets.Display;
 /**
  * Stores used colors so they can be cached, and disposed when needed.
  */
-public class ColorCache {
+public class ColorCache implements DisposeListener {
 	private Display display;
 	private Map<RGB, Color> colors = new HashMap<>();
 
@@ -46,5 +48,9 @@ public class ColorCache {
 		for(Color color:colors.values()) {
 			color.dispose();
 		}
+	}
+
+	public void widgetDisposed(DisposeEvent event) {
+		dispose();
 	}
 }
