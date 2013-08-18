@@ -9,46 +9,53 @@ import java.util.regex.Pattern;
 
 import syntaxhighlighter.brush.*;
 
-public class MonoLanguage extends AbstractLanguage {
+public class XsltLanguage implements Language {
+	public XsltLanguage() {
+	}
+	
 	@Override
 	public String getName() {
-		return "Mono";
+		return "XSLT";
 	}
 	
 	@Override
 	public String getExtension() {
-		return ".cs";
+		return ".xslt";
 	}
 	
 	@Override
 	public Brush getBrush() {
-		return new BrushCSharp();
+		return new BrushXml();
 	}
 	
 	@Override
 	public Process createCompiler(File dir, String name) throws IOException {
-		return new ProcessBuilder()
-			.command("gmcs", "-out:main", name + getExtension())
-			.directory(dir)
-			.start();
+		return null;
 	}
 	
 	@Override
 	public Process runProgram(File dir, String name) throws IOException {
 		return new ProcessBuilder()
 			.directory(dir)
-			.command("mono", "main")
+			.command("xsltproc", name + getExtension(), "-")
 			.start();
 	}
 
 	@Override
+	public String getDefaultInput() {
+		return "<?xml version='1.0' encoding='UTF-8'?>\r" +
+			"<xml></xml>";
+	}
+	
+	@Override
 	public String getTemplate() {
-		return "using System;\r\r" +
-			"class Prog {\r" +
-			"\tpublic static void Main(string[] args) {\r" +
-			"\t\tConsole.WriteLine(\"Hello World!\");\r" +
-			"\t}\r" +
-			"}";
+		return "<?xml version='1.0' encoding='UTF-8'?>\r" +
+			"<xsl:stylesheet xmlns:xsl='http://www.w3.org/1999/XSL/Transform' version='1.0'>\r" +
+			"\t<xsl:output method='xml' indent='yes'/>\r" +
+			"\t<xsl:template match='*'>\r" +
+			"\t\t<xsl:copy><xsl:apply-templates/></xsl:copy>\r" +
+			"\t</xsl:template>\r" +
+			"</xsl:stylesheet>\r";
 	}
 
 	@Override

@@ -19,4 +19,8 @@ public class InputText {
 	public String getText() {
 		return text.getText();
 	}
+
+	public void setText(String s) {
+		text.setText(s);
+	}
 }

@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 import syntaxhighlighter.brush.*;
 
-public class HaskellLanguage implements Language {
+public class HaskellLanguage extends AbstractLanguage {
 	@Override
 	public String getName() {
 		return "Haskell";

@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import syntaxhighlighter.brush.Brush;
 import syntaxhighlighter.brush.BrushJava;
 
-public class JavaLanguage implements Language {
+public class JavaLanguage extends AbstractLanguage {
 	private String jarDir;
 	
 	public JavaLanguage() {

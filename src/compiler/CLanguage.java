@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 import syntaxhighlighter.brush.*;
 
-public class CLanguage implements Language {
+public class CLanguage extends AbstractLanguage {
 	@Override
 	public String getName() {
 		return "C";

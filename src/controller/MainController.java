@@ -35,8 +35,15 @@ public class MainController {
 
 	public void setLanguage(Language language) {
 		this.language = language;
+		
 		editorText.setLanguage(language);
 		editorText.setText(language.getTemplate());
+		
+		String defaultInput = language.getDefaultInput();
+		if(defaultInput != null) {
+			inputText.setText(defaultInput);
+		}
+		
 		compile();
 	}
 

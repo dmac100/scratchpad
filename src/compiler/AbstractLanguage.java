@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import syntaxhighlighter.brush.Brush;
+import syntaxhighlighter.brush.BrushPlain;
 
 public class AbstractLanguage implements Language {
 	private String name;
@@ -20,6 +21,11 @@ public class AbstractLanguage implements Language {
 		this.runtime = runtime;
 		this.brush = brush;
 		this.template = template;
+	}
+	
+	protected AbstractLanguage() {
+		name = "main";
+		brush = new BrushPlain();
 	}
 
 	@Override
@@ -63,5 +69,10 @@ public class AbstractLanguage implements Language {
 	@Override
 	public String getTemplate() {
 		return template;
+	}
+
+	@Override
+	public String getDefaultInput() {
+		return null;
 	}
 }

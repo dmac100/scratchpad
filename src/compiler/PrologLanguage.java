@@ -9,44 +9,28 @@ import java.util.regex.Pattern;
 
 import syntaxhighlighter.brush.*;
 
-public class PascalLanguage extends AbstractLanguage {
+public class PrologLanguage extends AbstractLanguage {
 	@Override
 	public String getName() {
-		return "Pascal";
+		return "Prolog";
 	}
 	
 	@Override
 	public String getExtension() {
-		return ".ps";
-	}
-	
-	@Override
-	public Brush getBrush() {
-		return new BrushDelphi();
-	}
-	
-	@Override
-	public Process createCompiler(File dir, String name) throws IOException {
-		return new ProcessBuilder()
-			.command("fpc", "-omain", name + getExtension())
-			.directory(dir)
-			.start();
+		return ".pl";
 	}
 	
 	@Override
 	public Process runProgram(File dir, String name) throws IOException {
 		return new ProcessBuilder()
-			.directory(dir)
-			.command(new File(dir, "main").getPath())
-			.start();
+		.command("swipl", "-t", "main", "-l", name + getExtension())
+		.directory(dir)
+		.start();
 	}
 
 	@Override
 	public String getTemplate() {
-		return "program main;\r\r" +
-			"begin\r" +
-			"\tWriteLn('Hello World!');\r" +
-			"end.";
+		return "main :- write('Hello World!'), nl.";
 	}
 
 	@Override

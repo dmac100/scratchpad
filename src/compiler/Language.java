@@ -13,4 +13,5 @@ public interface Language {
 	Process runProgram(File dir, String name) throws IOException;
 	Brush getBrush();
 	String getTemplate();
+	String getDefaultInput();
 }

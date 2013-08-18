@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 import syntaxhighlighter.brush.*;
 
-public class CppLanguage implements Language {
+public class CppLanguage extends AbstractLanguage {
 	@Override
 	public String getName() {
 		return "C++";

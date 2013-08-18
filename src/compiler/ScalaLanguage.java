@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 import syntaxhighlighter.brush.*;
 
-public class ScalaLanguage implements Language {
+public class ScalaLanguage extends AbstractLanguage {
 	private String jarDir;
 	
 	public ScalaLanguage() {
@@ -75,7 +75,7 @@ public class ScalaLanguage implements Language {
 	@Override
 	public String getTemplate() {
 		return "object Main {\r" +
-			"\tdef main(args:Array[String]){\r" +
+			"\tdef main(args:Array[String]) {\r" +
 			"\t\tprintln(\"Hello World!\");\r" +
 			"\t}\r" +
 			"}";
