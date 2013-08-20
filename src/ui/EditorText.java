@@ -41,6 +41,7 @@ public class EditorText {
 	private final StyledText styledText;
 	private final ColorCache colorCache;
 	private final UndoRedoImpl undoRedo;
+	private final Completion completion;
 	
 	private Language language;
 	private Callback<Void> compileCallback;
@@ -55,6 +56,7 @@ public class EditorText {
 		styledText.setTabs(4);
 		
 		undoRedo = new UndoRedoImpl(styledText);
+		completion = new Completion(styledText);
 		
 		// Set monospaced font.
 		final Font font = new Font(Display.getCurrent(), "Consolas", 10, SWT.NORMAL);
@@ -105,6 +107,9 @@ public class EditorText {
 						Point selection = styledText.getSelection();
 						if(selection.x != selection.y) {
 							indentSelection();
+							event.doit = false;
+						} else if(completion.canComplete()) {
+							completion.complete();
 							event.doit = false;
 						}
 					}
