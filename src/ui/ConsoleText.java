@@ -6,6 +6,8 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
@@ -26,11 +28,25 @@ public class ConsoleText {
 		text = new StyledText(parent, SWT.V_SCROLL);
 		text.setEditable(false);
 		text.setMargins(3, 0, 3, 0);
+		
+		text.addKeyListener(new KeyAdapter() {
+			public void keyPressed(KeyEvent event) {
+				if((event.stateMask & SWT.CTRL) > 0) {
+					if(event.keyCode == 'a') {
+						selectAll();
+					}
+				}
+			}
+		});
 
 		colorCache = new ColorCache(Display.getCurrent());
 		text.addDisposeListener(colorCache);
 		
 		clear();
+	}
+	
+	public void selectAll() {
+		text.setSelection(0, text.getText().length());
 	}
 
 	/**
