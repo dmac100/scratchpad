@@ -43,19 +43,19 @@ public class XsltLanguage implements Language {
 
 	@Override
 	public String getDefaultInput() {
-		return "<?xml version='1.0' encoding='UTF-8'?>\r" +
+		return "<?xml version='1.0' encoding='UTF-8'?>\n" +
 			"<xml></xml>";
 	}
 	
 	@Override
 	public String getTemplate() {
-		return "<?xml version='1.0' encoding='UTF-8'?>\r" +
-			"<xsl:stylesheet xmlns:xsl='http://www.w3.org/1999/XSL/Transform' version='1.0'>\r" +
-			"\t<xsl:output method='xml' indent='yes'/>\r" +
-			"\t<xsl:template match='*'>\r" +
-			"\t\t<xsl:copy><xsl:apply-templates/></xsl:copy>\r" +
-			"\t</xsl:template>\r" +
-			"</xsl:stylesheet>\r";
+		return "<?xml version='1.0' encoding='UTF-8'?>\n" +
+			"<xsl:stylesheet xmlns:xsl='http://www.w3.org/1999/XSL/Transform' version='1.0'>\n" +
+			"\t<xsl:output method='xml' indent='yes'/>\n" +
+			"\t<xsl:template match='*'>\n" +
+			"\t\t<xsl:copy><xsl:apply-templates/></xsl:copy>\n" +
+			"\t</xsl:template>\n" +
+			"</xsl:stylesheet>\n";
 	}
 
 	@Override

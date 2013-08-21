@@ -85,7 +85,7 @@ public class EditorText {
 
 		styledText.addVerifyKeyListener(new VerifyKeyListener() {
 			public void verifyKey(VerifyEvent event) {
-				if(event.character == '\r') {
+				if(event.character == '\r' || event.character == '\n') {
 					if((event.stateMask & SWT.CTRL) > 0) {
 						// Compile code on CTRL+ENTER.
 						if(compileCallback != null) {
@@ -288,7 +288,7 @@ public class EditorText {
 		boolean atLastLine = (line + 2 >= styledText.getLineCount());
 		
 		if(atLastLine) {
-			styledText.append("\r");
+			styledText.append("\n");
 		}
 		
 		int offset1 = styledText.getOffsetAtLine(line);
@@ -337,7 +337,7 @@ public class EditorText {
 		int lineEnd = getEndOfLineOffset(line);
 		
 		if(lineEnd + 1 >= styledText.getCharCount()) {
-			styledText.append("\r");
+			styledText.append("\n");
 		}
 		
 		styledText.replaceTextRange(lineStart, lineEnd - lineStart + 1, "");
@@ -416,6 +416,14 @@ public class EditorText {
 	
 	public void setCompileCallback(Callback<Void> callback) {
 		this.compileCallback = callback;
+	}
+	
+	public void setModifiedCallback(final Callback<Void> callback) {
+		styledText.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent event) {
+				callback.onCallback(null);
+			}
+		});
 	}
 
 	public Control getControl() {

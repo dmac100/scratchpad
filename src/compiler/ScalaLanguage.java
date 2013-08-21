@@ -74,10 +74,10 @@ public class ScalaLanguage extends AbstractLanguage {
 	
 	@Override
 	public String getTemplate() {
-		return "object Main {\r" +
-			"\tdef main(args:Array[String]) {\r" +
-			"\t\tprintln(\"Hello World!\");\r" +
-			"\t}\r" +
+		return "object Main {\n" +
+			"\tdef main(args:Array[String]) {\n" +
+			"\t\tprintln(\"Hello World!\");\n" +
+			"\t}\n" +
 			"}";
 	}
 

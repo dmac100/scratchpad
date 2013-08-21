@@ -43,11 +43,11 @@ public class MonoLanguage extends AbstractLanguage {
 
 	@Override
 	public String getTemplate() {
-		return "using System;\r\r" +
-			"class Prog {\r" +
-			"\tpublic static void Main(string[] args) {\r" +
-			"\t\tConsole.WriteLine(\"Hello World!\");\r" +
-			"\t}\r" +
+		return "using System;\n\n" +
+			"class Prog {\n" +
+			"\tpublic static void Main(string[] args) {\n" +
+			"\t\tConsole.WriteLine(\"Hello World!\");\n" +
+			"\t}\n" +
 			"}";
 	}
 

@@ -43,9 +43,9 @@ public class PascalLanguage extends AbstractLanguage {
 
 	@Override
 	public String getTemplate() {
-		return "program main;\r\r" +
-			"begin\r" +
-			"\tWriteLn('Hello World!');\r" +
+		return "program main;\n\n" +
+			"begin\n" +
+			"\tWriteLn('Hello World!');\n" +
 			"end.";
 	}
 

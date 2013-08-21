@@ -7,21 +7,30 @@ import java.util.concurrent.Future;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.widgets.Display;
 
+import com.google.common.eventbus.EventBus;
+
 import ui.*;
+import util.StringUtil;
 
 import compiler.Compiler;
 import compiler.Language;
+import event.*;
 
 public class MainController {
 	private final EditorText editorText;
 	private final InputText inputText;
 	private final ConsoleText consoleText;
 	
+	private EventBus eventBus;
 	private Language language;
 	private Future<?> runningProgram;
 	private Callback<Boolean> runningChangedCallback;
-
-	public MainController(EditorText editorText, InputText inputText, ConsoleText consoleText) {
+	
+	private File file = null;
+	private boolean modified = false;
+	
+	public MainController(final EventBus eventBus, EditorText editorText, InputText inputText, ConsoleText consoleText) {
+		this.eventBus = eventBus;
 		this.editorText = editorText;
 		this.inputText = inputText;
 		this.consoleText = consoleText;
@@ -31,13 +40,36 @@ public class MainController {
 				compile();
 			}
 		});
+		
+		editorText.setModifiedCallback(new Callback<Void>() {
+			public void onCallback(Void param) {
+				modified = true;
+				eventBus.post(new ModifiedEvent(modified));
+			}
+		});
 	}
 
+	public void setLanguageFromFilename(String name) {
+		String extension = StringUtil.match(name, "\\..*$");
+		if(extension != null) {
+			for(Language language:Languages.getLanguages()) {
+				if(language.getExtension().equals(extension)) {
+					setLanguage(language);
+					return;
+				}
+			}
+		}
+	}
+	
 	public void setLanguage(Language language) {
 		this.language = language;
+		this.file = null;
 		
 		editorText.setLanguage(language);
 		editorText.setText(language.getTemplate());
+		this.modified = false;
+		eventBus.post(new ModifiedEvent(modified));
+		eventBus.post(new LanguageChangedEvent(language));
 		
 		String defaultInput = language.getDefaultInput();
 		if(defaultInput != null) {
@@ -49,9 +81,38 @@ public class MainController {
 
 	public void open(String selected) throws IOException {
 		String text = FileUtils.readFileToString(new File(selected));
+		setLanguageFromFilename(selected);
+		file = new File(selected);
 		editorText.setText(text);
+		modified = false;
+		eventBus.post(new ModifiedEvent(modified));
 	}
 
+	public boolean getSaveEnabled() {
+		return file != null;
+	}
+
+	public void save() throws IOException {
+		FileUtils.writeStringToFile(file, editorText.getText());
+		modified = false;
+		eventBus.post(new ModifiedEvent(modified));
+	}
+	
+	public void saveAs(String selected) throws IOException {
+		file = new File(selected);
+		FileUtils.writeStringToFile(file, editorText.getText());
+		modified = false;
+		eventBus.post(new ModifiedEvent(modified));
+	}
+	
+	public boolean getModified() {
+		return modified;
+	}
+	
+	public File getFile() {
+		return file;
+	}
+	
 	public void compile() {
 		final String source = editorText.getText();
 		final String input = inputText.getText();

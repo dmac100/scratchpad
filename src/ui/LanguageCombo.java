@@ -22,7 +22,7 @@ public class LanguageCombo {
 		this.combo = new Combo(parent, SWT.READ_ONLY);
 		this.mainController = mainController;
 		
-		for(Language language:new Languages().getLanguages()) {
+		for(Language language:Languages.getLanguages()) {
 			languageMap.put(language.getName(), language);
 		}
 		
@@ -47,6 +47,15 @@ public class LanguageCombo {
 			Language language = languageMap.get(selected);
 			
 			mainController.setLanguage(language);
+		}
+	}
+
+	public void setLanguage(Language language) {
+		for(int i = 0; i < combo.getItemCount(); i++) {
+			if(combo.getItem(i).equals(language.getName())) {
+				combo.select(i);
+				return;
+			}
 		}
 	}
 }

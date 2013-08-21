@@ -122,10 +122,10 @@ public class JavaLanguage extends AbstractLanguage {
 
 	@Override
 	public String getTemplate() {
-		return "public class Main {\r" +
-			"\tpublic static void main(String[] args) throws Exception {\r" +
-			"\t\tSystem.out.println(\"Hello World!\");\r" +
-			"\t}\r" +
+		return "public class Main {\n" +
+			"\tpublic static void main(String[] args) throws Exception {\n" +
+			"\t\tSystem.out.println(\"Hello World!\");\n" +
+			"\t}\n" +
 			"}";
 	}
 

@@ -7,6 +7,8 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.swt.custom.StyledText;
 
+import util.StringUtil;
+
 /**
  * Performs tab-completion on a StyledText when the complete method is called. Completes based
  * on words that already exist in the control. Repeating a completion will cycle through a
@@ -104,7 +106,7 @@ public class Completion {
 		completionIndex = 0;
 		completions = new ArrayList<>();
 
-		String completionPrefix = match(prefix, "[\\w_]+$");
+		String completionPrefix = StringUtil.match(prefix, "[\\w_]+$");
 		if(completionPrefix == null) {
 			return;
 		}
@@ -129,18 +131,5 @@ public class Completion {
 		}
 		
 		completions.add(completionPrefix);
-	}
-	
-	/**
-	 * Returns the first match in s for the pattern, or null
-	 * if there is no match.
-	 */
-	private static String match(String s, String pattern) {
-		Matcher matcher = Pattern.compile(pattern).matcher(s);
-		if(matcher.find()) {
-			return matcher.group();
-		} else {
-			return null;
-		}
 	}
 }

@@ -59,6 +59,14 @@ public class MenuBuilder {
 		return this;
 	}
 	
+	public MenuBuilder setAccelerator(int a) {
+		if(item == null) throw new IllegalStateException("No menuitem");
+		
+		item.setAccelerator(a);
+		
+		return this;
+	}
+	
 	public void build() {
 		Menu oldMenu = shell.getMenuBar();
 		shell.setMenuBar(menubar);

@@ -1,5 +1,6 @@
 package ui;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.swt.SWT;
@@ -9,23 +10,20 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import controller.MainController;
-import event.EnabledChangedEvent;
+import event.*;
 
 public class Main {
 	private final EventBus eventBus = new EventBus();
 	private final Shell shell;
 	private final MainController mainController;
+	
+	private LanguageCombo languageCombo;
 	
 	public Main(final Shell shell) {
 		this.shell = shell;
@@ -47,15 +45,26 @@ public class Main {
 		
 		//horizontalSash.setMaximizedControl(editorText.getControl());
 		
-		mainController = new MainController(editorText, inputText, consoleText);
+		mainController = new MainController(eventBus, editorText, inputText, consoleText);
 		
 		createMenuBar(shell);
 		createToolBar(top);
+		refreshTitle();
 		
 		eventBus.register(new Object() {
 			@Subscribe @SuppressWarnings("unused")
 			public void onEnabledChanged(EnabledChangedEvent event) {
 				createMenuBar(shell);
+			}
+			
+			@Subscribe @SuppressWarnings("unused")
+			public void onModified(ModifiedEvent event) {
+				refreshTitle();
+			}
+			
+			@Subscribe @SuppressWarnings("unused")
+			public void onLanguageChanged(LanguageChangedEvent event) {
+				languageCombo.setLanguage(event.getLanguage());
 			}
 		});
 	}
@@ -63,8 +72,8 @@ public class Main {
 	private void createMenuBar(final Shell shell) {
 		MenuBuilder menuBuilder = new MenuBuilder(shell);
 		
-		menuBuilder.addMenu("File")
-			.addItem("Open...").addSelectionListener(new SelectionAdapter() {
+		menuBuilder.addMenu("&File")
+			.addItem("&Open...\tCtrl+O").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
 						open();
@@ -73,15 +82,45 @@ public class Main {
 					}
 				}
 			})
+			.setAccelerator(SWT.CONTROL | 'o')
 			.addSeparator()
-			.addItem("Exit").addSelectionListener(new SelectionAdapter() {
+			
+			.addItem("&Save\tCtrl+S").addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent event) {
+					try {
+						if(mainController.getSaveEnabled()) {
+							mainController.save();
+						} else {
+							saveAs();
+						}
+					} catch(Exception e) {
+						displayException(e);
+					}
+				}
+			})
+			.setAccelerator(SWT.CONTROL | 's')
+			
+			.addItem("Save &As...\tShift+Ctrl+S").addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent event) {
+					try {
+						saveAs();
+					} catch(Exception e) {
+						displayException(e);
+					}
+				}
+			})
+			.setAccelerator(SWT.CONTROL | SWT.SHIFT | 's')
+			.addSeparator()
+			
+			.addItem("E&xit\tCtrl+Q").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					shell.dispose();
 				}
-			});
+			})
+			.setAccelerator(SWT.CTRL | 'q');
 		
-		menuBuilder.addMenu("Edit")
-			.addItem("Undo").addSelectionListener(new SelectionAdapter() {
+		menuBuilder.addMenu("&Edit")
+			.addItem("&Undo\tCtrl+Z").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
 						mainController.undo();
@@ -90,8 +129,10 @@ public class Main {
 					}
 				}
 			})
+			.setAccelerator(SWT.CONTROL | 'z')
 			.setEnabled(mainController.undoEnabled())
-			.addItem("Redo").addSelectionListener(new SelectionAdapter() {
+			
+			.addItem("&Redo\tCtrl+Y").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
 						mainController.redo();
@@ -100,8 +141,10 @@ public class Main {
 					}
 				}
 			}).setEnabled(mainController.redoEnabled())
+			.setAccelerator(SWT.CONTROL | 'y')
 			.addSeparator()
-			.addItem("Cut").addSelectionListener(new SelectionAdapter() {
+			
+			.addItem("Cu&t\tCtrl+X").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
 						mainController.cut();
@@ -110,8 +153,10 @@ public class Main {
 					}
 				}
 			})
+			.setAccelerator(SWT.CONTROL | 'x')
 			.setEnabled(mainController.cutEnabled())
-			.addItem("Copy").addSelectionListener(new SelectionAdapter() {
+			
+			.addItem("&Copy\tCtrl+C").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
 						mainController.copy();
@@ -120,8 +165,10 @@ public class Main {
 					}
 				}
 			})
+			.setAccelerator(SWT.CONTROL | 'c')
 			.setEnabled(mainController.copyEnabled())
-			.addItem("Paste").addSelectionListener(new SelectionAdapter() {
+			
+			.addItem("&Paste\tCtrl+V").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
 						mainController.paste();
@@ -130,9 +177,11 @@ public class Main {
 					}
 				}
 			})
+			.setAccelerator(SWT.CONTROL | 'v')
 			.setEnabled(mainController.pasteEnabled())
 			.addSeparator()
-			.addItem("Find...").addSelectionListener(new SelectionAdapter() {
+			
+			.addItem("&Find...\tCtrl+F").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
 						mainController.find();
@@ -141,7 +190,9 @@ public class Main {
 					}
 				}
 			})
+			.setAccelerator(SWT.CONTROL | 'f')
 			.addSeparator()
+			
 			.addItem("Convert Spaces to Tabs").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
@@ -151,6 +202,7 @@ public class Main {
 					}
 				}
 			})
+			
 			.addItem("Convert Tabs to Spaces").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
@@ -160,6 +212,7 @@ public class Main {
 					}
 				}
 			})
+			
 			.build();
 	}
 	
@@ -172,6 +225,17 @@ public class Main {
 		
 		if(selected != null) {
 			mainController.open(selected);
+		}
+	}
+	
+	private void saveAs() throws IOException {
+		FileDialog dialog = new FileDialog(shell, SWT.SAVE);
+		dialog.setText("Save");
+		
+		String selected = dialog.open();
+		
+		if(selected != null) {
+			mainController.saveAs(selected);
 		}
 	}
 
@@ -209,7 +273,7 @@ public class Main {
 			}
 		});
 		
-		LanguageCombo languageCombo = new LanguageCombo(parent, mainController);
+		this.languageCombo = new LanguageCombo(parent, mainController);
 	}
 	
 	private void displayMessage(String message) {
@@ -227,14 +291,31 @@ public class Main {
 		alert.open();
 	}
 
+	public void refreshTitle() {
+		shell.setText("ScratchPad");
+
+		String filename = "Untitled";
+		String modified = "";
+		
+		File file = mainController.getFile();
+		if(file != null) {
+			filename = file.getName() + " (" + file.getParentFile() + ")";
+		}
+		
+		if(mainController.getModified()) {
+			modified = "*";
+		}
+		
+		shell.setText(modified + filename + " - ScratchPad");
+	}
+	
 	public static void main(String[] args) {
 		Display display = new Display();
 
 		Shell shell = new Shell(display);
 
-		Main test = new Main(shell);
-
-		shell.setText("ScratchPad");
+		Main main = new Main(shell);
+		
 		shell.setSize(700, 600);
 		shell.open();
 

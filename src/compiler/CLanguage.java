@@ -43,10 +43,10 @@ public class CLanguage extends AbstractLanguage {
 
 	@Override
 	public String getTemplate() {
-		return "#include <stdio.h>\r\r" +
-			"int main(int argc, char *argv[]) {\r" +
-			"\tprintf(\"Hello World!\\n\");\r" +
-			"\treturn 0;\r" +
+		return "#include <stdio.h>\n\n" +
+			"int main(int argc, char *argv[]) {\n" +
+			"\tprintf(\"Hello World!\\n\");\n" +
+			"\treturn 0;\n" +
 			"}";
 	}
 

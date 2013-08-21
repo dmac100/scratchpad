@@ -43,10 +43,10 @@ public class CppLanguage extends AbstractLanguage {
 
 	@Override
 	public String getTemplate() {
-		return "#include <iostream>\r\r" +
-			"int main(int argc, char *argv[]) {\r" +
-			"\tstd::cout << \"Hello World!\" << std::endl;\r" +
-			"\treturn 0;\r" +
+		return "#include <iostream>\n\n" +
+			"int main(int argc, char *argv[]) {\n" +
+			"\tstd::cout << \"Hello World!\" << std::endl;\n" +
+			"\treturn 0;\n" +
 			"}";
 	}
 
