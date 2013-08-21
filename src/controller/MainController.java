@@ -49,6 +49,15 @@ public class MainController {
 		});
 	}
 
+	public void setLanguageFromName(String name) {
+		for(Language language:Languages.getLanguages()) {
+			if(language.getName().equalsIgnoreCase(name)) {
+				setLanguage(language);
+				return;
+			}
+		}
+	}
+	
 	public void setLanguageFromFilename(String name) {
 		String extension = StringUtil.match(name, "\\..*$");
 		if(extension != null) {

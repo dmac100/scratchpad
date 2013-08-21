@@ -3,13 +3,12 @@ package ui;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.cli.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import com.google.common.eventbus.EventBus;
@@ -345,6 +344,7 @@ public class Main {
 		Shell shell = new Shell(display);
 
 		Main main = new Main(shell);
+		main.parseArgs(args);
 		
 		shell.setSize(700, 600);
 		shell.open();
@@ -356,5 +356,41 @@ public class Main {
 		}
 
 		display.dispose();
+	}
+
+	private void parseArgs(String[] args) {
+		CommandLineParser parser = new GnuParser();
+		
+		Options options = new Options();
+		options.addOption(new Option("l", "language", true, "set the language by name"));
+		options.addOption(new Option("f", "file", true, "load a file"));
+		options.addOption(new Option("h", "help", false, "show help"));
+		
+		try {
+			CommandLine command = parser.parse(options, args);
+		
+			if(command.hasOption("h") || command.getArgs().length > 1) {
+				new HelpFormatter().printHelp("java -jar scratchpad.jar [options] [filename]", options);
+				System.exit(0);
+			}
+			
+			// Set language before opening any file in case the file changes the language.
+			if(command.hasOption("l")) {
+				mainController.setLanguageFromName(command.getOptionValue("l"));
+			}
+			
+			if(command.hasOption("f")) {
+				mainController.open(command.getOptionValue("f"));
+			}
+			
+			for(String s:command.getArgs()) {
+				mainController.open(s);
+			}
+		} catch(Throwable e) {
+			// Print usage and exit on any error.
+			System.err.println(e.getMessage());
+			new HelpFormatter().printHelp("java -jar scratchpad.jar", options);
+			System.exit(0);
+		}
 	}
 }
