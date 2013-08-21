@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.custom.VerifyKeyListener;
+import org.eclipse.swt.custom.*;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyAdapter;
@@ -18,8 +16,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.events.VerifyEvent;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -51,7 +48,7 @@ public class EditorText {
 
 		this.shell = shell;
 		
-		styledText = new StyledText(parent, SWT.MULTI | SWT.V_SCROLL);
+		styledText = new StyledText(parent, SWT.V_SCROLL);
 		styledText.setMargins(2, 1, 2, 1);
 		styledText.setTabs(4);
 		
@@ -80,9 +77,10 @@ public class EditorText {
 		styledText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
 				refreshStyle();
+				refreshBullets();
 			}
 		});
-
+		
 		styledText.addVerifyKeyListener(new VerifyKeyListener() {
 			public void verifyKey(VerifyEvent event) {
 				if(event.character == '\r' || event.character == '\n') {
@@ -343,7 +341,20 @@ public class EditorText {
 		styledText.replaceTextRange(lineStart, lineEnd - lineStart + 1, "");
 	}
 
-	public void refreshStyle() {
+	private void refreshBullets() {
+		int maxLine = styledText.getLineCount();
+		
+		int lineCountWidth = Math.max(String.valueOf(maxLine).length(), 3);
+		
+		StyleRange style = new StyleRange();
+		style.metrics = new GlyphMetrics(0, 0, lineCountWidth * 8 + 5);
+		style.foreground = colorCache.getColor(70, 80, 90);
+		Bullet bullet = new Bullet(ST.BULLET_NUMBER, style);
+		styledText.setLineBullet(0, styledText.getLineCount(), null);
+		styledText.setLineBullet(0, styledText.getLineCount(), bullet);
+	}
+	
+	private void refreshStyle() {
 		if(language == null) return;
 		
 		Theme theme = new ThemeSublime();
