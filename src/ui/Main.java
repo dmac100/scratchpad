@@ -24,6 +24,10 @@ public class Main {
 	private final MainController mainController;
 	
 	private LanguageCombo languageCombo;
+	private EditorText editorText;
+	private SashForm horizontalSash;
+	
+	private boolean inputVisible = false;
 	
 	public Main(final Shell shell) {
 		this.shell = shell;
@@ -35,21 +39,20 @@ public class Main {
 		bottom.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.FILL_VERTICAL));
 		
 		SashForm verticalSash = new SashForm(bottom, SWT.VERTICAL);
-		SashForm horizontalSash = new SashForm(verticalSash, SWT.HORIZONTAL);
-		EditorText editorText = new EditorText(eventBus, shell, horizontalSash);
+		horizontalSash = new SashForm(verticalSash, SWT.HORIZONTAL);
+		editorText = new EditorText(eventBus, shell, horizontalSash);
 		InputText inputText = new InputText(horizontalSash);
 		ConsoleText consoleText = new ConsoleText(verticalSash);
 		
-		horizontalSash.setWeights(new int[] { 80, 20 });
+		horizontalSash.setWeights(new int[] { 70, 30 });
 		verticalSash.setWeights(new int[] { 75, 25 });
-		
-		//horizontalSash.setMaximizedControl(editorText.getControl());
 		
 		mainController = new MainController(eventBus, editorText, inputText, consoleText);
 		
 		createMenuBar(shell);
 		createToolBar(top);
 		refreshTitle();
+		setInputPaneVisible(inputVisible);
 		
 		eventBus.register(new Object() {
 			@Subscribe @SuppressWarnings("unused")
@@ -213,6 +216,21 @@ public class Main {
 				}
 			})
 			
+		.addMenu("&View")
+			.addItem("&Show Input Pane").addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent event) {
+					setInputPaneVisible(true);
+				}
+			})
+			.setEnabled(!inputVisible)
+			
+			.addItem("&Hide Input Pane").addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent event) {
+					setInputPaneVisible(false);
+				}
+			})
+			.setEnabled(inputVisible)
+			
 			.build();
 	}
 	
@@ -239,6 +257,18 @@ public class Main {
 		}
 	}
 
+	private void setInputPaneVisible(boolean visible) {
+		inputVisible = visible;
+		
+		if(visible) {
+			horizontalSash.setMaximizedControl(null);
+		} else {
+			horizontalSash.setMaximizedControl(editorText.getControl());
+		}
+		
+		eventBus.post(new EnabledChangedEvent());
+	}
+	
 	private void createToolBar(Composite parent) {
 		parent.setLayout(new FillLayout());
 		parent.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL));
