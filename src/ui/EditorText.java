@@ -5,17 +5,7 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.TraverseEvent;
-import org.eclipse.swt.events.TraverseListener;
-import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -37,8 +27,8 @@ public class EditorText {
 	private final Shell shell;
 	private final StyledText styledText;
 	private final ColorCache colorCache;
-	private final UndoRedoImpl undoRedo;
 	private final Completion completion;
+	private final EditFunctions editFunctions;
 	
 	private Language language;
 	private Callback<Void> compileCallback;
@@ -52,8 +42,18 @@ public class EditorText {
 		styledText.setMargins(2, 1, 2, 1);
 		styledText.setTabs(4);
 		
-		undoRedo = new UndoRedoImpl(styledText);
+		editFunctions = new EditFunctions(styledText);
 		completion = new Completion(styledText);
+		
+		styledText.addFocusListener(new FocusListener() {
+			public void focusGained(FocusEvent event) {
+				eventBus.post(new EnabledChangedEvent());
+			}
+
+			public void focusLost(FocusEvent event) {
+				eventBus.post(new EnabledChangedEvent());
+			}
+		});
 		
 		// Set monospaced font.
 		final Font font = new Font(Display.getCurrent(), "Consolas", 10, SWT.NORMAL);
@@ -156,7 +156,7 @@ public class EditorText {
 			public void keyPressed(KeyEvent event) {
 				if((event.stateMask & SWT.CTRL) > 0) {
 					if(event.keyCode == 'a') {
-						selectAll();
+						editFunctions.selectAll();
 					} else if(event.keyCode == 'd') {
 						deleteLine();
 					} else if(event.keyCode == 'f') {
@@ -324,10 +324,6 @@ public class EditorText {
 		}
 	}
 
-	public void selectAll() {
-		styledText.setSelection(0, styledText.getText().length());
-	}
-	
 	public void deleteLine() {
 		int line = styledText.getLineAtOffset(styledText.getCaretOffset());
 		
@@ -422,7 +418,7 @@ public class EditorText {
 
 	public void setText(String string) {
 		styledText.setText(string);
-		undoRedo.clear();
+		editFunctions.clearUndoHistory();
 	}
 	
 	public void setCompileCallback(Callback<Void> callback) {
@@ -445,46 +441,6 @@ public class EditorText {
 		this.language = language;
 		refreshStyle();
 	}
-	
-	public void undo() {
-		undoRedo.undo();
-	}
-	
-	public void redo() {
-		undoRedo.redo();
-	}
-	
-	public void cut() {
-		styledText.cut();
-	}
-	
-	public void copy() {
-		styledText.copy();
-	}
-	
-	public void paste() {
-		styledText.paste();
-	}
-
-	public boolean undoEnabled() {
-		return undoRedo.hasUndo();
-	}
-
-	public boolean redoEnabled() {
-		return undoRedo.hasRedo();
-	}
-
-	public boolean cutEnabled() {
-		return styledText.getSelectionText().length() > 0;
-	}
-
-	public boolean copyEnabled() {
-		return styledText.getSelectionText().length() > 0;
-	}
-
-	public boolean pasteEnabled() {
-		return true;
-	}
 
 	public void find() {
 		new FindDialog(shell, styledText).open();
@@ -496,5 +452,13 @@ public class EditorText {
 	
 	public void convertTabsToSpaces() {
 		styledText.setText(styledText.getText().replaceAll("\t", "    "));
+	}
+
+	public boolean hasFocus() {
+		return styledText.isFocusControl();
+	}
+
+	public EditFunctions getEditFunctions() {
+		return editFunctions;
 	}
 }

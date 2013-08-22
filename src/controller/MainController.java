@@ -166,24 +166,51 @@ public class MainController {
 		}
 	}
 	
-	public void undo() {
-		editorText.undo();
+	private EditFunctions getFocusedEditFunctions() {
+		if(editorText.hasFocus()) {
+			return editorText.getEditFunctions();
+		}
+		
+		if(inputText.hasFocus()) {
+			return inputText.getEditFunctions();
+		}
+		
+		return null;
 	}
 	
+	public void undo() {
+		EditFunctions control = getFocusedEditFunctions();
+		if(control != null) {
+			control.undo();
+		}
+	}
+
 	public void redo() {
-		editorText.redo();
+		EditFunctions control = getFocusedEditFunctions();
+		if(control != null) {
+			control.redo();
+		}
 	}
 	
 	public void cut() {
-		editorText.cut();
+		EditFunctions control = getFocusedEditFunctions();
+		if(control != null) {
+			control.cut();
+		}
 	}
 	
 	public void copy() {
-		editorText.copy();
+		EditFunctions control = getFocusedEditFunctions();
+		if(control != null) {
+			control.copy();
+		}
 	}
 	
 	public void paste() {
-		editorText.paste();
+		EditFunctions control = getFocusedEditFunctions();
+		if(control != null) {
+			control.paste();
+		}
 	}
 
 	public void find() {
@@ -191,23 +218,48 @@ public class MainController {
 	}
 
 	public boolean undoEnabled() {
-		return editorText.undoEnabled();
+		EditFunctions control = getFocusedEditFunctions();
+		if(control != null) {
+			return control.isUndoEnabled();
+		} else {
+			return false;
+		}
 	}
 
 	public boolean redoEnabled() {
-		return editorText.redoEnabled();
+		EditFunctions control = getFocusedEditFunctions();
+		if(control != null) {
+			return control.isRedoEnabled();
+		} else {
+			return false;
+		}
 	}
 	
 	public boolean cutEnabled() {
-		return editorText.cutEnabled();
+		EditFunctions control = getFocusedEditFunctions();
+		if(control != null) {
+			return control.isCutEnabled();
+		} else {
+			return false;
+		}
 	}
 	
 	public boolean copyEnabled() {
-		return editorText.copyEnabled();
+		EditFunctions control = getFocusedEditFunctions();
+		if(control != null) {
+			return control.isCopyEnabled();
+		} else {
+			return false;
+		}
 	}
 	
 	public boolean pasteEnabled() {
-		return editorText.pasteEnabled();
+		EditFunctions control = getFocusedEditFunctions();
+		if(control != null) {
+			return control.isPasteEnabled();
+		} else {
+			return false;
+		}
 	}
 
 	public void convertSpacesToTabs() {
