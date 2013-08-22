@@ -29,6 +29,8 @@ public class MainController {
 	
 	private File file = null;
 	private boolean modified = false;
+	private String jarDir = null;
+	private String classpath = null;
 	
 	public MainController(final EventBus eventBus, EditorText editorText, InputText inputText, ConsoleText consoleText) {
 		this.eventBus = eventBus;
@@ -134,7 +136,7 @@ public class MainController {
 		ConsoleAppender err = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_RED);
 		ConsoleAppender info = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_BLUE);
 		
-		Compiler compiler = new Compiler(language);
+		Compiler compiler = new Compiler(language, jarDir, classpath);
 		runningProgram = compiler.runFile(source, input, out, err, info, new Callback<Void>() {
 			public void onCallback(Void param) {
 				fireRunningChanged(false);
@@ -214,5 +216,13 @@ public class MainController {
 
 	public void convertTabsToSpaces() {
 		editorText.convertTabsToSpaces();
+	}
+
+	public void setJarDir(String jarDir) {
+		this.jarDir = jarDir;
+	}
+
+	public void setClasspath(String classpath) {
+		this.classpath = classpath;
 	}
 }

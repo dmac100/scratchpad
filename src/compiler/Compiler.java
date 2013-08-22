@@ -14,6 +14,8 @@ public class Compiler {
 	private static ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build());
 	
 	private final Language language;
+	private final String jarDir;
+	private final String classpath;
 	
 	private static class StreamReader implements Runnable {
 		private BufferedReader reader;
@@ -45,8 +47,10 @@ public class Compiler {
 		}
 	}
 	
-	public Compiler(Language language) {
+	public Compiler(Language language, String jarDir, String classpath) {
 		this.language = language;
+		this.jarDir = jarDir;
+		this.classpath = classpath;
 	}
 
 	/**
@@ -76,14 +80,13 @@ public class Compiler {
 		
 		try {
 			String name = language.getFileName(contents);
-			String jarDir = null;
 			
 			dir = Files.createTempDirectory("scratchpad").toFile();
 			File source = new File(dir, name + "." + language.getExtension());
 			
 			FileUtils.write(source, contents, "UTF-8");
 			
-			compilerProcess = language.createCompiler(dir, name, getClassPath(jarDir));
+			compilerProcess = language.createCompiler(dir, name, getClasspath());
 			if(compilerProcess != null) {
 				executor.submit(new StreamReader("Compiler Output", compilerProcess.getInputStream(), out, info));
 				executor.submit(new StreamReader("Compiler Error", compilerProcess.getErrorStream(), err, info));
@@ -94,7 +97,7 @@ public class Compiler {
 				}
 			}
 			
-			runProcess = language.runProgram(dir, name, getClassPath(jarDir));
+			runProcess = language.runProgram(dir, name, getClasspath());
 			
 			executor.submit(new StreamReader("Output", runProcess.getInputStream(), out, info));
 			executor.submit(new StreamReader("Error", runProcess.getErrorStream(), err, info));
@@ -128,12 +131,20 @@ public class Compiler {
 		}
 	}
 	
+	private String getClasspath() {
+		if(classpath != null) {
+			return classpath;
+		} else if(jarDir != null) {
+			return getClasspath(jarDir);
+		} else {
+			return ".";
+		}
+	}
+	
 	/**
 	 * Returns the classpath containing all the jar files in jarDir.
 	 */
-	private static String getClassPath(String jarDir) {
-		if(jarDir == null) return ".";
-		
+	private static String getClasspath(String jarDir) {
 		StringBuilder classpath = new StringBuilder(".");
 		
 		String[] files = new File(jarDir).list();

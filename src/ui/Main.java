@@ -40,7 +40,7 @@ public class Main {
 		SashForm verticalSash = new SashForm(bottom, SWT.VERTICAL);
 		horizontalSash = new SashForm(verticalSash, SWT.HORIZONTAL);
 		editorText = new EditorText(eventBus, shell, horizontalSash);
-		InputText inputText = new InputText(horizontalSash);
+		InputText inputText = new InputText(eventBus, horizontalSash);
 		ConsoleText consoleText = new ConsoleText(verticalSash);
 		
 		horizontalSash.setWeights(new int[] { 70, 30 });
@@ -365,6 +365,8 @@ public class Main {
 		options.addOption(new Option("l", "language", true, "set the language by name"));
 		options.addOption(new Option("f", "file", true, "load a file"));
 		options.addOption(new Option("i", "input", false, "show input pane"));
+		options.addOption(new Option("j", "jardir", true, "adds the jars in a directory to the classpath"));
+		options.addOption(new Option("cp", "classpath", true, "sets the classpath to use when compiling/running java programs"));
 		options.addOption(new Option("h", "help", false, "show help"));
 		
 		try {
@@ -382,6 +384,14 @@ public class Main {
 			
 			if(command.hasOption("i")) {
 				setInputPaneVisible(true);
+			}
+			
+			if(command.hasOption("j")) {
+				mainController.setJarDir(command.getOptionValue("j"));
+			}
+			
+			if(command.hasOption("cp")) {
+				mainController.setClasspath(command.getOptionValue("cp"));
 			}
 			
 			if(command.hasOption("f")) {
