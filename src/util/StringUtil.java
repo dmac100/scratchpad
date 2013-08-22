@@ -11,7 +11,11 @@ public class StringUtil {
 	public static String match(String s, String pattern) {
 		Matcher matcher = Pattern.compile(pattern).matcher(s);
 		if(matcher.find()) {
-			return matcher.group();
+			if(matcher.groupCount() > 0) {
+				return matcher.group(1);
+			} else {
+				return matcher.group();
+			}
 		} else {
 			return null;
 		}

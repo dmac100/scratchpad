@@ -76,13 +76,14 @@ public class Compiler {
 		
 		try {
 			String name = language.getFileName(contents);
+			String jarDir = null;
 			
 			dir = Files.createTempDirectory("scratchpad").toFile();
-			File source = new File(dir, name + language.getExtension());
+			File source = new File(dir, name + "." + language.getExtension());
 			
 			FileUtils.write(source, contents, "UTF-8");
 			
-			compilerProcess = language.createCompiler(dir, name);
+			compilerProcess = language.createCompiler(dir, name, getClassPath(jarDir));
 			if(compilerProcess != null) {
 				executor.submit(new StreamReader("Compiler Output", compilerProcess.getInputStream(), out, info));
 				executor.submit(new StreamReader("Compiler Error", compilerProcess.getErrorStream(), err, info));
@@ -93,7 +94,7 @@ public class Compiler {
 				}
 			}
 			
-			runProcess = language.runProgram(dir, name);
+			runProcess = language.runProgram(dir, name, getClassPath(jarDir));
 			
 			executor.submit(new StreamReader("Output", runProcess.getInputStream(), out, info));
 			executor.submit(new StreamReader("Error", runProcess.getErrorStream(), err, info));
@@ -125,5 +126,27 @@ public class Compiler {
 			
 			finishedCallback.onCallback(null);
 		}
+	}
+	
+	/**
+	 * Returns the classpath containing all the jar files in jarDir.
+	 */
+	private static String getClassPath(String jarDir) {
+		if(jarDir == null) return ".";
+		
+		StringBuilder classpath = new StringBuilder(".");
+		
+		String[] files = new File(jarDir).list();
+		
+		if(files != null) {
+			for(String file:files) {
+				if(file.toLowerCase().endsWith(".jar")) {
+					classpath.append(File.pathSeparator);
+					classpath.append(new File(jarDir, file));
+				}
+			}
+		}
+		
+		return classpath.toString();
 	}
 }

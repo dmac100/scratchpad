@@ -364,6 +364,7 @@ public class Main {
 		Options options = new Options();
 		options.addOption(new Option("l", "language", true, "set the language by name"));
 		options.addOption(new Option("f", "file", true, "load a file"));
+		options.addOption(new Option("i", "input", false, "show input pane"));
 		options.addOption(new Option("h", "help", false, "show help"));
 		
 		try {
@@ -377,6 +378,10 @@ public class Main {
 			// Set language before opening any file in case the file changes the language.
 			if(command.hasOption("l")) {
 				mainController.setLanguageFromName(command.getOptionValue("l"));
+			}
+			
+			if(command.hasOption("i")) {
+				setInputPaneVisible(true);
 			}
 			
 			if(command.hasOption("f")) {

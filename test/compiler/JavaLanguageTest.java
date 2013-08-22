@@ -2,9 +2,21 @@ package compiler;
 
 import static org.junit.Assert.*;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class JavaLanguageTest {
+	Language javaLanguage;
+	
+	@Before
+	public void before() {
+		for(Language language:Languages.getLanguages()) {
+			if(language.getName().equals("Java")) {
+				javaLanguage = language;
+			}
+		}
+	}
+	
 	@Test
 	public void main() {
 		String code = "public class Main {\n" +
@@ -12,7 +24,7 @@ public class JavaLanguageTest {
 			"\t}\n" +
 			"}";
 		
-		assertEquals("Main", new JavaLanguage().getFileName(code));
+		assertEquals("Main", javaLanguage.getFileName(code));
 	}
 	
 	@Test
@@ -22,7 +34,7 @@ public class JavaLanguageTest {
 			"\t}\n" +
 			"}";
 		
-		assertEquals("Main2", new JavaLanguage().getFileName(code));
+		assertEquals("Main2", javaLanguage.getFileName(code));
 	}
 	
 	@Test
@@ -32,7 +44,7 @@ public class JavaLanguageTest {
 			"\t}\n" +
 			"}";
 		
-		assertEquals("Main", new JavaLanguage().getFileName(code));
+		assertEquals("Main", javaLanguage.getFileName(code));
 	}
 	
 	@Test
@@ -42,7 +54,7 @@ public class JavaLanguageTest {
 			"\t}\n" +
 			"}";
 		
-		assertEquals("Main2", new JavaLanguage().getFileName(code));
+		assertEquals("Main2", javaLanguage.getFileName(code));
 	}
 	
 	@Test
@@ -54,6 +66,6 @@ public class JavaLanguageTest {
 			"\t}\n" +
 			"}";
 		
-		assertEquals("Main3", new JavaLanguage().getFileName(code));
+		assertEquals("Main3", javaLanguage.getFileName(code));
 	}
 }

@@ -7,14 +7,15 @@ import java.util.concurrent.Future;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.widgets.Display;
 
-import com.google.common.eventbus.EventBus;
-
 import ui.*;
 import util.StringUtil;
 
+import com.google.common.eventbus.EventBus;
+import compiler.*;
 import compiler.Compiler;
-import compiler.Language;
-import event.*;
+
+import event.LanguageChangedEvent;
+import event.ModifiedEvent;
 
 public class MainController {
 	private final EditorText editorText;
@@ -59,7 +60,7 @@ public class MainController {
 	}
 	
 	public void setLanguageFromFilename(String name) {
-		String extension = StringUtil.match(name, "\\..*$");
+		String extension = StringUtil.match(name, "\\.(.*)$");
 		if(extension != null) {
 			for(Language language:Languages.getLanguages()) {
 				if(language.getExtension().equals(extension)) {
