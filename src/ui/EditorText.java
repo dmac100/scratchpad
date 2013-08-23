@@ -174,7 +174,7 @@ public class EditorText {
 		String indent = styledText.getLine(line).replaceAll("\\S.*", "");
 		
 		styledText.insert("\n" + indent);
-		styledText.setCaretOffset(getEndOfLineOffset(line + 1));
+		styledText.setCaretOffset(styledText.getOffsetAtLine(line + 1) + indent.length());
 	}
 	
 	private void indentSelection() {
