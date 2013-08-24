@@ -7,14 +7,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 
-import syntaxhighlight.ParseResult;
-import syntaxhighlight.Style;
-import syntaxhighlight.Theme;
+import syntaxhighlight.*;
 import syntaxhighlighter.SyntaxHighlighterParser;
 import syntaxhighlighter.brush.Brush;
 
@@ -32,6 +27,8 @@ public class EditorText {
 	
 	private Language language;
 	private Callback<Void> compileCallback;
+	
+	private final Theme theme = new ThemeSublime();
 	
 	public EditorText(final EventBus eventBus, Shell shell, Composite parent) {
 		colorCache = new ColorCache(Display.getCurrent());
@@ -77,7 +74,18 @@ public class EditorText {
 		styledText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
 				refreshStyle();
-				refreshBullets();
+				refreshLineStyles();
+			}
+		});
+		
+		styledText.addCaretListener(new CaretListener() {
+			public void caretMoved(CaretEvent event) {
+				// Delay refreshing line style to ensure the new line count is used when deleting lines.
+				Display.getCurrent().asyncExec(new Runnable() {
+					public void run() {
+						refreshLineStyles();
+					}
+				});
 			}
 		});
 		
@@ -337,23 +345,28 @@ public class EditorText {
 		styledText.replaceTextRange(lineStart, lineEnd - lineStart + 1, "");
 	}
 
-	private void refreshBullets() {
+	private void refreshLineStyles() {
+		int line = styledText.getLineAtOffset(styledText.getCaretOffset());
 		int maxLine = styledText.getLineCount();
 		
 		int lineCountWidth = Math.max(String.valueOf(maxLine).length(), 3);
 		
+		// Update line numbers.
 		StyleRange style = new StyleRange();
 		style.metrics = new GlyphMetrics(0, 0, lineCountWidth * 8 + 5);
 		style.foreground = colorCache.getColor(70, 80, 90);
 		Bullet bullet = new Bullet(ST.BULLET_NUMBER, style);
-		styledText.setLineBullet(0, styledText.getLineCount(), null);
-		styledText.setLineBullet(0, styledText.getLineCount(), bullet);
+		styledText.setLineBullet(0, maxLine, null);
+		styledText.setLineBullet(0, maxLine, bullet);
+		
+		// Update current line highlight.
+		int lineCount = styledText.getContent().getLineCount();
+		styledText.setLineBackground(0, lineCount, colorCache.getColor(theme.getBackground()));
+		styledText.setLineBackground(line, 1, colorCache.getColor(47, 48, 42));
 	}
 	
 	private void refreshStyle() {
 		if(language == null) return;
-		
-		Theme theme = new ThemeSublime();
 		
 		Brush brush = language.getBrush();
 		
