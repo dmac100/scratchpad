@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.*;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import compiler.Importer;
 
 import controller.MainController;
 import event.*;
@@ -46,7 +47,7 @@ public class Main {
 		horizontalSash.setWeights(new int[] { 70, 30 });
 		verticalSash.setWeights(new int[] { 75, 25 });
 		
-		mainController = new MainController(eventBus, editorText, inputText, consoleText);
+		mainController = new MainController(shell, eventBus, editorText, inputText, consoleText);
 		
 		createMenuBar(shell);
 		createToolBar(top);
@@ -193,6 +194,17 @@ public class Main {
 				}
 			})
 			.setAccelerator(SWT.CONTROL | 'f')
+			
+			.addSeparator()
+			
+			.addItem("Add &Import...\tCtrl+I").addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent event) {
+					mainController.addImport();
+				}
+			})
+			.setEnabled(mainController.importEnabled())
+			.setAccelerator(SWT.CONTROL | 'i')
+			
 			.addSeparator()
 			
 			.addItem("Convert Spaces to Tabs").addSelectionListener(new SelectionAdapter() {

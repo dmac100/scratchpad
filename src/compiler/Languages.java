@@ -58,6 +58,7 @@ public class Languages {
 		String filenameMatcher = getChild(languageElement, "filenameMatcher");
 		String template = getChild(languageElement, "template");
 		String defaultInput = getChild(languageElement, "defaultInput");
+		String standardImportJar = getChild(languageElement, "standardImportJar");
 		
 		// Add defaults for non-optional parameters.
 		if(extension == null) extension = "";
@@ -80,7 +81,8 @@ public class Languages {
 			run,
 			filenameMatcher,
 			template,
-			defaultInput
+			defaultInput,
+			standardImportJar
 		);
 	}
 

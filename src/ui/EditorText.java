@@ -474,4 +474,12 @@ public class EditorText {
 	public EditFunctions getEditFunctions() {
 		return editFunctions;
 	}
+	
+	public String getSelectedText() {
+		return styledText.getSelectionText();
+	}
+	
+	public StyledText getStyledText() {
+		return styledText;
+	}
 }

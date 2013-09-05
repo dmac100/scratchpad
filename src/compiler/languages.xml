@@ -1,8 +1,9 @@
 <?xml version='1.0'?>
 <languages>
 	<language name="Java" extension="java" brush="BrushJava">
-		<compiler>javac -cp $CLASSPATH $NAME.$EXT</compiler>
+		<compiler>javac -encoding utf-8 -cp $CLASSPATH $NAME.$EXT</compiler>
 		<run>java -cp $CLASSPATH $NAME</run>
+		<standardImportJar>/opt/icedtea-bin-6.1.11.4/jre/lib/rt.jar</standardImportJar>
 		<filenameMatcher>(?s)public +class +([\w\d]+)((?!class).)*public +static +void +main *\(</filenameMatcher>
 		<template>
 			<![CDATA[

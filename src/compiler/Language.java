@@ -16,9 +16,10 @@ public class Language {
 	private String filenameMatcher;
 	private String template;
 	private String defaultInput;
+	private String standardImportJar;
 
 	/**
-	 * Creates a new language from the paramters. Compiler, run, filenameMatcher, and defaultInput are optional.
+	 * Creates a new language from the paramters. Compiler, run, filenameMatcher, defaultInput, and standardImportJar are optional.
 	 * Commandlines are split by spaces and then variable substitutions are performed on $NAME, $EXT, and $CLASSPATH.
 	 * @param name the name of the programming language.
 	 * @param extension the file extension used for this language.
@@ -28,9 +29,10 @@ public class Language {
 	 * @param filenameMatcher the pattern to use to detect the filename from the file contents, or null for a default name.
 	 * @param template the initial contents for the source code template.
 	 * @param defaultInput the initial contents for the program input, or null if there is no default input.
+	 * @param standardImportJar the jar that contains the libraries for the standard imports.
 	 */
 	public Language(String name, String extension, Brush brush, String compiler, String run,
-			String filenameMatcher, String template, String defaultInput) {
+			String filenameMatcher, String template, String defaultInput, String standardImportJar) {
 		
 		this.name = name;
 		this.extension = extension;
@@ -40,6 +42,7 @@ public class Language {
 		this.filenameMatcher = filenameMatcher;
 		this.template = template;
 		this.defaultInput = defaultInput;
+		this.standardImportJar = standardImportJar;
 	}
 	
 	/**
@@ -129,6 +132,13 @@ public class Language {
 	 */
 	public Brush getBrush() {
 		return brush;
+	}
+	
+	/**
+	 * Returns the path to the standard import jar, or null if there isn't any.
+	 */
+	public String getStandardImportJar() {
+		return standardImportJar;
 	}
 
 	/**

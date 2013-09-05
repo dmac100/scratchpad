@@ -2,10 +2,13 @@ package controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Future;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 import ui.*;
 import util.StringUtil;
@@ -14,10 +17,10 @@ import com.google.common.eventbus.EventBus;
 import compiler.*;
 import compiler.Compiler;
 
-import event.LanguageChangedEvent;
-import event.ModifiedEvent;
+import event.*;
 
 public class MainController {
+	private final Shell shell;
 	private final EditorText editorText;
 	private final InputText inputText;
 	private final ConsoleText consoleText;
@@ -32,7 +35,8 @@ public class MainController {
 	private String jarDir = null;
 	private String classpath = null;
 	
-	public MainController(final EventBus eventBus, EditorText editorText, InputText inputText, ConsoleText consoleText) {
+	public MainController(Shell shell, final EventBus eventBus, EditorText editorText, InputText inputText, ConsoleText consoleText) {
+		this.shell = shell;
 		this.eventBus = eventBus;
 		this.editorText = editorText;
 		this.inputText = inputText;
@@ -82,6 +86,7 @@ public class MainController {
 		this.modified = false;
 		eventBus.post(new ModifiedEvent(modified));
 		eventBus.post(new LanguageChangedEvent(language));
+		eventBus.post(new EnabledChangedEvent());
 		
 		String defaultInput = language.getDefaultInput();
 		if(defaultInput != null) {
@@ -276,5 +281,38 @@ public class MainController {
 
 	public void setClasspath(String classpath) {
 		this.classpath = classpath;
+	}
+	
+	public boolean importEnabled() {
+		return language != null && language.getStandardImportJar() != null;
+	}
+
+	public void addImport() {
+		List<String> jars = new ArrayList<String>();
+		
+		if(language.getStandardImportJar() != null) {
+			jars.add(language.getStandardImportJar());
+		}
+		
+		if(jarDir != null) {
+			String[] files = new File(jarDir).list();
+			if(files != null) {
+				for(String file:files) {
+					if(file.toLowerCase().endsWith(".jar")) {
+						jars.add(new File(jarDir, file).getAbsolutePath());
+					}
+				}
+			}
+		}
+		
+		if(classpath != null) {
+			for(String path:classpath.split("[;:]")) {
+				jars.add(new File(path).getAbsolutePath());
+			}
+		}
+		
+		Importer importer = new Importer(jars);
+		ImportDialog dialog = new ImportDialog(shell, importer, editorText.getStyledText());
+		dialog.open(editorText.getSelectedText());
 	}
 }
