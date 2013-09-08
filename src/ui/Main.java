@@ -184,7 +184,7 @@ public class Main {
 			.setEnabled(mainController.pasteEnabled())
 			.addSeparator()
 			
-			.addItem("&Find...\tCtrl+F").addSelectionListener(new SelectionAdapter() {
+			.addItem("&Find/Replace...\tCtrl+F").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
 						mainController.find();
