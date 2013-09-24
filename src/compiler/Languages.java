@@ -66,12 +66,7 @@ public class Languages {
 		if(template == null) template = "";
 		
 		// Load the brush by class name.
-		Brush brushObject = new BrushPlain();
-		try {
-			brushObject = (Brush) Class.forName("syntaxhighlighter.brush." + brush).newInstance();
-		} catch(Exception e) {
-			System.err.println("Error loading brush: " + brush + " - " + e);
-		}
+		Brush brushObject = getBrush(brush);
 		
 		return new Language(
 			name,
@@ -84,6 +79,27 @@ public class Languages {
 			defaultInput,
 			standardImportJar
 		);
+	}
+
+	/**
+	 * Returns an instance of a brush by its name, or BrushPlain if it can't be loaded.
+	 */
+	private Brush getBrush(String brush) {
+		String[] packages = { "syntaxhighlighter.brush", "compiler.brushes" };
+		
+		for(String p:packages) {
+			try {
+				Brush brushObject = (Brush) Class.forName(p + "." + brush).newInstance();
+				return brushObject;
+			} catch(ClassNotFoundException e ) {
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		System.err.println("Failed to load brush: " + brush);
+		
+		return new BrushPlain();
 	}
 
 	/**
