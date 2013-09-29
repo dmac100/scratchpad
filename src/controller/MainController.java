@@ -95,6 +95,11 @@ public class MainController {
 		
 		compile();
 	}
+	
+	public String[] getOpenFilterExtensions() {
+		String extension = language.getExtension();
+		return new String[] { "*." + extension, "*.*" };
+	}
 
 	public void open(String selected) throws IOException {
 		String text = FileUtils.readFileToString(new File(selected));

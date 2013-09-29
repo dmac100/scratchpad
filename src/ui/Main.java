@@ -248,7 +248,8 @@ public class Main {
 	private void open() throws IOException {
 		FileDialog dialog = new FileDialog(shell, SWT.OPEN);
 		dialog.setText("Open");
-		dialog.setFilterExtensions(new String[] { "*.java", "*.*" });
+		
+		dialog.setFilterExtensions(mainController.getOpenFilterExtensions());
 
 		String selected = dialog.open();
 		
