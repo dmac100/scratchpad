@@ -286,7 +286,7 @@ public class Main {
 		parent.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL));
 		
 		Button compileButton = new Button(parent, SWT.NONE);
-		compileButton.setText("Compile");
+		compileButton.setText("Compile/Run");
 		compileButton.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				try {
