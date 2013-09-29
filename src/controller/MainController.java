@@ -82,11 +82,18 @@ public class MainController {
 		this.file = null;
 		
 		editorText.setLanguage(language);
-		editorText.setText(language.getTemplate());
-		this.modified = false;
+		
+		if(!modified) {
+			insertTemplate();
+		}
+		
 		eventBus.post(new ModifiedEvent(modified));
 		eventBus.post(new LanguageChangedEvent(language));
 		eventBus.post(new EnabledChangedEvent());
+	}
+	
+	public void insertTemplate() {
+		editorText.setText(language.getTemplate());
 		
 		String defaultInput = language.getDefaultInput();
 		if(defaultInput != null) {
@@ -94,6 +101,7 @@ public class MainController {
 		}
 		
 		compile();
+		this.modified = false;
 	}
 	
 	public String[] getOpenFilterExtensions() {

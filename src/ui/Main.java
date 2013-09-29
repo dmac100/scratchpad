@@ -315,6 +315,18 @@ public class Main {
 			}
 		});
 		
+		final Button insertTemplateButton = new Button(parent, SWT.NONE);
+		insertTemplateButton.setText("Insert Sample");
+		insertTemplateButton.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent event) {
+				try {
+					mainController.insertTemplate();
+				} catch(Exception e) {
+					displayException(e);
+				}
+			}
+		});
+		
 		this.languageCombo = new LanguageCombo(parent, mainController);
 	}
 	
