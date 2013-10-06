@@ -130,12 +130,12 @@ public class EditorText {
 					}
 				}
 				
-				// Move line on Alt+Up/Down.
+				// Move lines on Alt+Up/Down.
 				if((event.stateMask & SWT.ALT) > 0) {
 					if(event.keyCode == SWT.ARROW_UP) {
-						moveLineUp();
+						moveSelectedLinesUp();
 					} else if(event.keyCode == SWT.ARROW_DOWN) {
-						moveLineDown();
+						moveSelectedLinesDown();
 					}
 				}
 				
@@ -270,23 +270,49 @@ public class EditorText {
 		}
 	}
 	
-	private void moveLineUp() {
-		int offset = styledText.getCaretOffset();
-		int line = styledText.getLineAtOffset(offset);
+	/**
+	 * Moves all the selected lines up one line, and selects them all.
+	 * Moves the current line if there is no selection.
+	 */
+	private void moveSelectedLinesUp() {
+		Point selection = styledText.getSelection();
+		int startLine = styledText.getLineAtOffset(selection.x);
+		int endLine = styledText.getLineAtOffset(selection.y);
+
+		if(endLine > startLine) {
+			// If the selection ends at the beginning of a line, use the previous line instead.
+			endLine = styledText.getLineAtOffset(selection.y - 1);
+		}
 		
-		if(line > 0) {
-			swapLineWithNext(line - 1);
-			styledText.setCaretOffset(getEndOfLineOffset(line - 1));
+		if(startLine > 0) {
+			for(int line = startLine; line <= endLine; line++) {
+				swapLineWithNext(line - 1);
+			}
+			
+			styledText.setSelection(styledText.getOffsetAtLine(startLine - 1), getEndOfLineOffset(endLine - 1));
 		}
 	}
 	
-	private void moveLineDown() {
-		int offset = styledText.getCaretOffset();
-		int line = styledText.getLineAtOffset(offset);
+	/**
+	 * Moves all the selected lines down one line, and selects them all.
+	 * Moves the current line if there is no selection.
+	 */
+	private void moveSelectedLinesDown() {
+		Point selection = styledText.getSelection();
+		int startLine = styledText.getLineAtOffset(selection.x);
+		int endLine = styledText.getLineAtOffset(selection.y);
 		
-		if(line + 1 < styledText.getLineCount()) {
-			swapLineWithNext(line);
-			styledText.setCaretOffset(getEndOfLineOffset(line + 1));
+		if(endLine > startLine) {
+			// If the selection ends at the beginning of a line, use the previous line instead.
+			endLine = styledText.getLineAtOffset(selection.y - 1);
+		}
+		
+		if(endLine + 1 < styledText.getLineCount()) {
+			for(int line = endLine; line >= startLine; line--) {
+				swapLineWithNext(line);
+			}
+			
+			styledText.setSelection(styledText.getOffsetAtLine(startLine + 1), getEndOfLineOffset(endLine + 1));
 		}
 	}
 	
