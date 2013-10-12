@@ -228,18 +228,20 @@ public class Main {
 			})
 			
 		.addMenu("&View")
-			.addItem("&Show Input Pane").addSelectionListener(new SelectionAdapter() {
+			.addItem("&Show Input Pane\tCtrl+I").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					setInputPaneVisible(true);
 				}
 			})
+			.setAccelerator(SWT.CTRL | 'i')
 			.setEnabled(!inputVisible)
 			
-			.addItem("&Hide Input Pane").addSelectionListener(new SelectionAdapter() {
+			.addItem("&Hide Input Pane\tCtrl+I").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					setInputPaneVisible(false);
 				}
 			})
+			.setAccelerator(SWT.CTRL | 'i')
 			.setEnabled(inputVisible)
 			
 			.build();
