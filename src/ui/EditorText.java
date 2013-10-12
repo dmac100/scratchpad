@@ -183,6 +183,7 @@ public class EditorText {
 		
 		styledText.insert("\n" + indent);
 		styledText.setCaretOffset(styledText.getOffsetAtLine(line + 1) + indent.length());
+		styledText.showSelection();
 	}
 	
 	private void indentSelection() {
