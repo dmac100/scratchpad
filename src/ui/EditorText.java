@@ -213,7 +213,7 @@ public class EditorText {
 		for(int line = startLine; line <= endLine; line++) {
 			int offset = styledText.getOffsetAtLine(line);
 			String lineText = styledText.getLine(line);
-
+			
 			int charactersToRemove = getUnindentSize(lineText);
 			if(line == startLine) {
 				firstLineCharactersRemoved += charactersToRemove;
@@ -221,8 +221,10 @@ public class EditorText {
 			totalCharactersRemoved += charactersToRemove;
 			
 			styledText.replaceTextRange(offset, charactersToRemove, "");
-			styledText.setSelection(selection.x - firstLineCharactersRemoved, selection.y - totalCharactersRemoved);
 		}
+		
+		int newSelectionStart = Math.max(styledText.getOffsetAtLine(startLine), selection.x - firstLineCharactersRemoved);
+		styledText.setSelection(newSelectionStart, selection.y - totalCharactersRemoved);
 	}
 	
 	/**
