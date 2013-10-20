@@ -355,7 +355,11 @@ public class Main {
 		
 		File file = mainController.getFile();
 		if(file != null) {
-			filename = file.getName() + " (" + file.getParentFile() + ")";
+			if(file.getParentFile() == null) {
+				filename = file.getName();
+			} else {
+				filename = file.getName() + " (" + file.getParentFile() + ")";
+			}
 		}
 		
 		if(mainController.getModified()) {
