@@ -67,6 +67,7 @@ public class EditorText {
 
 		styledText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
+				normalizeNewlines();
 				refreshStyle();
 				refreshLineStyles();
 			}
@@ -367,7 +368,22 @@ public class EditorText {
 		
 		styledText.replaceTextRange(lineStart, lineEnd - lineStart + 1, "");
 	}
-
+	
+	/**
+	 * Replace all newline characters with "\n".
+	 */
+	private void normalizeNewlines() {
+		int offset = styledText.getCaretOffset();
+		String text = styledText.getText();
+		
+		if(text.contains("\r")) {
+			offset -= offset - text.substring(0, offset).replaceAll("\r\n", "\n").length();
+			text = text.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+			styledText.setText(text);
+			styledText.setCaretOffset(offset);
+		}
+	}
+	
 	private void refreshLineStyles() {
 		int line = styledText.getLineAtOffset(styledText.getCaretOffset());
 		int maxLine = styledText.getLineCount();
