@@ -362,7 +362,7 @@ public class EditorText {
 		int lineStart = styledText.getOffsetAtLine(line);
 		int lineEnd = getEndOfLineOffset(line);
 		
-		if(lineEnd + 1 >= styledText.getCharCount()) {
+		if(lineEnd + 1 > styledText.getCharCount()) {
 			styledText.append("\n");
 		}
 		
