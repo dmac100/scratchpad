@@ -52,15 +52,9 @@ public class EditorText {
 			}
 		});
 		
-		// Set monospaced font.
-		final Font font = new Font(Display.getCurrent(), "Consolas", 10, SWT.NORMAL);
-		styledText.setFont(font);
-		styledText.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent event) {
-				font.dispose();
-				colorCache.dispose();
-			}
-		});
+		styledText.setFont(FontList.consolas10);
+
+		styledText.addDisposeListener(colorCache);
 
 		// Disable traverse to allow tab and shift+tab for selection indentation.
 		styledText.addTraverseListener(new TraverseListener() {

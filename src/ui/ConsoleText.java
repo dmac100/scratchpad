@@ -39,6 +39,8 @@ public class ConsoleText {
 			}
 		});
 
+		text.setFont(FontList.consolas8);
+
 		colorCache = new ColorCache(Display.getCurrent());
 		text.addDisposeListener(colorCache);
 		

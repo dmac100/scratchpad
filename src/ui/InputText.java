@@ -29,6 +29,8 @@ public class InputText {
 				}
 			}
 		});
+
+		text.setFont(FontList.consolas8);
 		
 		text.addFocusListener(new FocusListener() {
 			public void focusGained(FocusEvent event) {
