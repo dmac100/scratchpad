@@ -190,6 +190,7 @@ class FindDialog extends Dialog {
 			matchText = styledText.getTextRange(matchStart, matchLength);
 			
 			styledText.setSelectionRange(matchStart, matchLength);
+			styledText.showSelection();
 		}
 		
 		replaceButton.setEnabled(foundMatch);
