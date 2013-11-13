@@ -144,9 +144,11 @@ public class EditorText {
 						event.doit = false;
 					}
 				}
-			
-				styledText.showSelection();
-				eventBus.post(new EnabledChangedEvent());
+		
+				if(event.character > 0) {
+					styledText.showSelection();
+					eventBus.post(new EnabledChangedEvent());
+				}
 			}
 		});
 		
