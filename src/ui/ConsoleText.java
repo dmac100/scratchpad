@@ -25,7 +25,7 @@ public class ConsoleText {
 	private AnsiStyle lastStyle;
 	
 	public ConsoleText(Composite parent) {
-		text = new StyledText(parent, SWT.V_SCROLL);
+		text = new StyledText(parent, SWT.WRAP | SWT.V_SCROLL);
 		text.setEditable(false);
 		text.setMargins(3, 0, 3, 0);
 		
@@ -67,8 +67,7 @@ public class ConsoleText {
 	 * Appends some text to the end of the console.
 	 */
 	public void append(String newText) {
-		String trimmed = trimLongLines(newText);
-		addWithStyles(trimmed);
+		addWithStyles(newText);
 		text.setTopIndex(text.getLineCount() - 1);
 	}
 	
@@ -108,21 +107,5 @@ public class ConsoleText {
 		}
 		
 		text.setStyleRanges(styles.toArray(new StyleRange[styles.size()]));
-	}
-
-	/**
-	 * Returns a string with trimmed long lines.
-	 */
-	private static String trimLongLines(String s) {
-		StringBuilder buffer = new StringBuilder();
-		
-		for(String line:s.split("(?=\\r?\\n)")) {
-			if(line.length() > 1000) {
-				line = line.substring(0, 1000);
-			}
-			buffer.append(line);
-		}
-		
-		return buffer.toString();
 	}
 }
