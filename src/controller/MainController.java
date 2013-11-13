@@ -78,18 +78,24 @@ public class MainController {
 	}
 	
 	public void setLanguage(Language language) {
+		boolean showingTemplate = (this.language == null) || equalsIgnoreWhitespace(editorText.getText(), this.language.getTemplate());
+
 		this.language = language;
 		this.file = null;
 		
 		editorText.setLanguage(language);
 		
-		if(!modified) {
+		if(showingTemplate) {
 			insertTemplate();
 		}
 		
 		eventBus.post(new ModifiedEvent(modified));
 		eventBus.post(new LanguageChangedEvent(language));
 		eventBus.post(new EnabledChangedEvent());
+	}
+
+	private static boolean equalsIgnoreWhitespace(String a, String b) {
+		return a.replaceAll("\\s*", "").equals(b.replaceAll("\\s*", ""));
 	}
 	
 	public void insertTemplate() {
