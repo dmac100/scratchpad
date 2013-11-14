@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.apache.commons.cli.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.*;
@@ -13,7 +14,6 @@ import org.eclipse.swt.widgets.*;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import compiler.Importer;
 
 import controller.MainController;
 import event.*;
@@ -369,6 +369,49 @@ public class Main {
 		shell.setText(modified + filename + " - ScratchPad");
 	}
 	
+	private void addFileDropTarget(Composite parent) {
+		final FileTransfer fileTransfer = FileTransfer.getInstance();
+		
+		DropTarget target = new DropTarget(parent, DND.DROP_COPY | DND.DROP_DEFAULT);
+		target.setTransfer(new Transfer[] { fileTransfer });
+		target.addDropListener(new DropTargetListener() {
+			public void dragEnter(DropTargetEvent event) {
+				if(event.detail == DND.DROP_DEFAULT) {
+					if((event.operations & DND.DROP_COPY) > 0) {
+						event.detail = DND.DROP_COPY;
+					} else {
+						event.detail = DND.DROP_NONE;
+					}
+				}
+			}
+			
+			public void drop(DropTargetEvent event) {
+				if(fileTransfer.isSupportedType(event.currentDataType)) {
+					String[] files = (String[])event.data;
+					for(String file:files) {
+						try {
+							mainController.open(file);
+						} catch(Exception e) {
+							displayException(e);
+						}
+					}
+				}
+			}
+			
+			public void dropAccept(DropTargetEvent event) {
+			}
+			
+			public void dragOver(DropTargetEvent event) {
+			}
+			
+			public void dragOperationChanged(DropTargetEvent event) {
+			}
+			
+			public void dragLeave(DropTargetEvent event) {
+			}
+		});
+	}
+	
 	public static void main(String[] args) {
 		Display display = new Display();
 
@@ -379,6 +422,8 @@ public class Main {
 		
 		shell.setSize(700, 600);
 		shell.open();
+		
+		main.addFileDropTarget(shell);
 
 		while(!shell.isDisposed()) {
 			if(!display.readAndDispatch()) {
