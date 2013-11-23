@@ -81,7 +81,6 @@ public class MainController {
 		boolean showingTemplate = (this.language == null) || equalsIgnoreWhitespace(editorText.getText(), this.language.getTemplate());
 
 		this.language = language;
-		this.file = null;
 		
 		editorText.setLanguage(language);
 		
@@ -108,6 +107,9 @@ public class MainController {
 		
 		compile();
 		this.modified = false;
+		this.file = null;
+
+		eventBus.post(new ModifiedEvent(modified));
 	}
 	
 	public String[] getOpenFilterExtensions() {
