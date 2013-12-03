@@ -91,6 +91,7 @@ public class MainController {
 		eventBus.post(new ModifiedEvent(modified));
 		eventBus.post(new LanguageChangedEvent(language));
 		eventBus.post(new EnabledChangedEvent());
+		compile();
 	}
 
 	private static boolean equalsIgnoreWhitespace(String a, String b) {
@@ -124,6 +125,7 @@ public class MainController {
 		editorText.setText(text);
 		modified = false;
 		eventBus.post(new ModifiedEvent(modified));
+		compile();
 	}
 
 	public boolean getSaveEnabled() {
