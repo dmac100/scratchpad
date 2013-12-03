@@ -1,14 +1,9 @@
 package ansi;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.events.VerifyEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 
 /**
@@ -22,24 +17,24 @@ public class AnsiParser {
 	public AnsiParser() {
 		// normal colors
 		this.colorTable[0] = new RGB(0, 0, 0); // black
-		this.colorTable[1] = new RGB(204, 0, 0); // red
-		this.colorTable[2] = new RGB(0, 204, 0); // green
-		this.colorTable[3] = new RGB(204, 204, 0); // yellow
-		this.colorTable[4] = new RGB(0, 0, 204); // blue
-		this.colorTable[5] = new RGB(204, 0, 204); // magenta
-		this.colorTable[6] = new RGB(0, 204, 204); // cyan
-		this.colorTable[7] = new RGB(192, 192, 192); // white
+		this.colorTable[1] = new RGB(150, 0, 0); // red
+		this.colorTable[2] = new RGB(0, 150, 0); // green
+		this.colorTable[3] = new RGB(150, 150, 0); // yellow
+		this.colorTable[4] = new RGB(0, 0, 150); // blue
+		this.colorTable[5] = new RGB(150, 0, 150); // magenta
+		this.colorTable[6] = new RGB(0, 150, 150); // cyan
+		this.colorTable[7] = new RGB(200, 200, 200); // white
 		this.colorTable[8] = null; // not used
 		this.colorTable[9] = null; // not used
 		// bright colors
-		this.colorTable[10] = new RGB(128, 128, 128); // black
-		this.colorTable[11] = new RGB(255, 0, 0); // red
-		this.colorTable[12] = new RGB(0, 255, 0); // green
-		this.colorTable[13] = new RGB(255, 255, 0); // yellow
-		this.colorTable[14] = new RGB(0, 0, 255); // blue
-		this.colorTable[15] = new RGB(255, 0, 255); // magenta
-		this.colorTable[16] = new RGB(0, 255, 255); // cyan
-		this.colorTable[17] = new RGB(255, 255, 255); // white
+		this.colorTable[10] = new RGB(100, 100, 100); // black
+		this.colorTable[11] = new RGB(200, 0, 0); // red
+		this.colorTable[12] = new RGB(0, 200, 0); // green
+		this.colorTable[13] = new RGB(200, 200, 0); // yellow
+		this.colorTable[14] = new RGB(0, 0, 200); // blue
+		this.colorTable[15] = new RGB(200, 0, 200); // magenta
+		this.colorTable[16] = new RGB(0, 200, 200); // cyan
+		this.colorTable[17] = new RGB(200, 200, 200); // white
 		this.colorTable[18] = null; // not used
 		this.colorTable[19] = null; // not used
 	}
