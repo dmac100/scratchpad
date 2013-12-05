@@ -102,8 +102,10 @@ public class Compiler {
 			executor.submit(new StreamReader("Output", runProcess.getInputStream(), out, info));
 			executor.submit(new StreamReader("Error", runProcess.getErrorStream(), err, info));
 
-			try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(runProcess.getOutputStream()))) {
+			try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(runProcess.getOutputStream(), "UTF-8"))) {
 				writer.append(input);
+			} catch(UnsupportedEncodingException e) {
+				throw new RuntimeException("Unsupported encoding", e);
 			}
 			
 			runProcess.waitFor();
