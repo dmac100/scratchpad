@@ -3,6 +3,7 @@ package compiler;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.concurrent.*;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.FileUtils;
 
@@ -24,14 +25,10 @@ public class Compiler {
 		private String name;
 		
 		public StreamReader(String name, InputStream inputStream, Appender appender, Appender info) {
-			try {
-				this.name = name;
-				this.reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-				this.appender = appender;
-				this.info = info;
-			} catch (UnsupportedEncodingException e) {
-				throw new RuntimeException("Unsupported encoding", e);
-			}
+			this.name = name;
+			this.reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+			this.appender = appender;
+			this.info = info;
 		}
 		
 		public void run() {
@@ -84,7 +81,7 @@ public class Compiler {
 			dir = Files.createTempDirectory("scratchpad").toFile();
 			File source = new File(dir, name + "." + language.getExtension());
 			
-			FileUtils.write(source, contents, "UTF-8");
+			FileUtils.write(source, contents, StandardCharsets.UTF_8);
 			
 			compilerProcess = language.createCompiler(dir, name, getClasspath());
 			if(compilerProcess != null) {
@@ -102,10 +99,8 @@ public class Compiler {
 			executor.submit(new StreamReader("Output", runProcess.getInputStream(), out, info));
 			executor.submit(new StreamReader("Error", runProcess.getErrorStream(), err, info));
 
-			try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(runProcess.getOutputStream(), "UTF-8"))) {
+			try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(runProcess.getOutputStream(), StandardCharsets.UTF_8))) {
 				writer.append(input);
-			} catch(UnsupportedEncodingException e) {
-				throw new RuntimeException("Unsupported encoding", e);
 			}
 			
 			runProcess.waitFor();
