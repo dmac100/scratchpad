@@ -1,19 +1,48 @@
 package ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.*;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.custom.Bullet;
+import org.eclipse.swt.custom.CaretEvent;
+import org.eclipse.swt.custom.CaretListener;
+import org.eclipse.swt.custom.ST;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.custom.VerifyKeyListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.GlyphMetrics;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
-import syntaxhighlight.*;
+import syntaxhighlight.ParseResult;
+import syntaxhighlight.Style;
+import syntaxhighlight.Theme;
 import syntaxhighlighter.SyntaxHighlighterParser;
 import syntaxhighlighter.brush.Brush;
 
+import com.google.common.base.Optional;
 import com.google.common.eventbus.EventBus;
+import compiler.BracketMatcher;
 import compiler.Language;
 
 import event.EnabledChangedEvent;
@@ -29,6 +58,7 @@ public class EditorText {
 	private Callback<Void> compileCallback;
 	
 	private final Theme theme = new ThemeSublime();
+	private StyleRange[] syntaxHighlightingRanges = new StyleRange[0];
 	
 	public EditorText(final EventBus eventBus, Shell shell, Composite parent) {
 		colorCache = new ColorCache(Display.getCurrent());
@@ -68,6 +98,7 @@ public class EditorText {
 		styledText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
 				normalizeNewlines();
+				updateSyntaxHighlightingRanges();
 				refreshStyle();
 				refreshLineStyles();
 			}
@@ -78,6 +109,7 @@ public class EditorText {
 				// Delay refreshing line style to ensure the new line count is used when deleting lines.
 				Display.getCurrent().asyncExec(new Runnable() {
 					public void run() {
+						refreshStyle();
 						refreshLineStyles();
 					}
 				});
@@ -386,6 +418,10 @@ public class EditorText {
 		}
 	}
 	
+
+	/**
+	 * Refresh the line styles including the current line highlight, and line numbers.
+	 */
 	private void refreshLineStyles() {
 		int line = styledText.getLineAtOffset(styledText.getCaretOffset());
 		int maxLine = styledText.getLineCount();
@@ -406,23 +442,15 @@ public class EditorText {
 		styledText.setLineBackground(line, 1, colorCache.getColor(47, 48, 42));
 	}
 	
-	private void refreshStyle() {
-		if(language == null) return;
-		
+	/**
+	 * Updates the syntax highlighting styles.
+	 */
+	private void updateSyntaxHighlightingRanges() {
+		// Set syntax highlighting.
 		Brush brush = language.getBrush();
-		
 		SyntaxHighlighterParser parser = new SyntaxHighlighterParser(brush);
-		
 		List<ParseResult> results = filterResults(parser.parse(null, styledText.getText()));
 		
-		java.awt.Color background = theme.getBackground();
-		
-		styledText.setBackground(colorCache.getColor(background));
-		
-		java.awt.Color normal = theme.getPlain().getColor();
-		
-		styledText.setForeground(colorCache.getColor(normal));
-
 		StyleRange[] styleRanges = new StyleRange[results.size()];
 		for(int i = 0; i < styleRanges.length; i++) {
 			ParseResult result = results.get(i);
@@ -437,15 +465,60 @@ public class EditorText {
 				java.awt.Color foreground = foregroundStyle.getColor();
 				range.foreground = colorCache.getColor(foreground);
 			} else {
+				java.awt.Color normal = theme.getPlain().getColor();
 				range.foreground = colorCache.getColor(normal);
 			}
 			
 			styleRanges[i] = range;
 		}
 		
-		styledText.setStyleRanges(styleRanges);
+		this.syntaxHighlightingRanges = styleRanges;
 	}
+	
+	/**
+	 * Refresh character style including foreground, background, syntax highlighting, and bracket highlighting.
+	 */
+	private void refreshStyle() {
+		if(language == null) return;
+		
+		// Set background color.
+		java.awt.Color background = theme.getBackground();
+		styledText.setBackground(colorCache.getColor(background));
+		
+		// Set foreground color.
+		java.awt.Color normal = theme.getPlain().getColor();
+		styledText.setForeground(colorCache.getColor(normal));
+		
+		// Set syntax highlighting.
+		styledText.setStyleRanges(syntaxHighlightingRanges);
+		
+		// Set bracket highlighting.
+		if(styledText.getCaretOffset() > 0) {
+			String text = styledText.getText();
+			
+			BracketMatcher bracketMatcher = new BracketMatcher();
+			Optional<Integer> match = bracketMatcher.getMatchingParen(text, styledText.getCaretOffset() - 1);
+			if(match.isPresent()) {
+				int x = match.get();
 
+				Color existingForeground = null;
+				for(StyleRange range:syntaxHighlightingRanges) {
+					if(range.start <= x && range.start + range.length > x) {
+						existingForeground = range.foreground;
+					}
+				}
+				
+				StyleRange range = new StyleRange();
+				range.start = x;
+				range.length = 1;
+				range.foreground = existingForeground;
+				range.borderStyle = SWT.BORDER_SOLID;
+				range.borderColor = colorCache.getColor(150, 150, 150);
+				styledText.setStyleRange(range);
+			}
+		}
+	}
+	
 	/**
 	 * Returns the list of ParseResults so that it doesn't contain overlapping offsets.
 	 */
@@ -493,6 +566,7 @@ public class EditorText {
 
 	public void setLanguage(Language language) {
 		this.language = language;
+		updateSyntaxHighlightingRanges();
 		refreshStyle();
 	}
 
