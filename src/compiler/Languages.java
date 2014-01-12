@@ -59,11 +59,13 @@ public class Languages {
 		String template = getChild(languageElement, "template");
 		String defaultInput = getChild(languageElement, "defaultInput");
 		String standardImportJar = getChild(languageElement, "standardImportJar");
+		String defaultClasspath = getChild(languageElement, "defaultClasspath");
 		
 		// Add defaults for non-optional parameters.
 		if(extension == null) extension = "";
 		if(brush == null) brush = "BrushPlain";
 		if(template == null) template = "";
+		if(defaultClasspath == null) defaultClasspath = ".";
 		
 		// Load the brush by class name.
 		Brush brushObject = getBrush(brush);
@@ -77,7 +79,8 @@ public class Languages {
 			filenameMatcher,
 			template,
 			defaultInput,
-			standardImportJar
+			standardImportJar,
+			defaultClasspath
 		);
 	}
 

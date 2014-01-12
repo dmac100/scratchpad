@@ -134,7 +134,7 @@ public class Compiler {
 		} else if(jarDir != null) {
 			return getClasspath(jarDir);
 		} else {
-			return ".";
+			return language.getDefaultClasspath();
 		}
 	}
 	

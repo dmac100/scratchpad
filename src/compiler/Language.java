@@ -17,6 +17,7 @@ public class Language {
 	private String template;
 	private String defaultInput;
 	private String standardImportJar;
+	private String defaultClasspath;
 
 	/**
 	 * Creates a new language from the paramters. Compiler, run, filenameMatcher, defaultInput, and standardImportJar are optional.
@@ -30,9 +31,10 @@ public class Language {
 	 * @param template the initial contents for the source code template.
 	 * @param defaultInput the initial contents for the program input, or null if there is no default input.
 	 * @param standardImportJar the jar that contains the libraries for the standard imports.
+	 * @param defaultClasspath the classpath to use if it is not specified elsewhere.
 	 */
 	public Language(String name, String extension, Brush brush, String compiler, String run,
-			String filenameMatcher, String template, String defaultInput, String standardImportJar) {
+			String filenameMatcher, String template, String defaultInput, String standardImportJar, String defaultClasspath) {
 		
 		this.name = name;
 		this.extension = extension;
@@ -43,6 +45,7 @@ public class Language {
 		this.template = template;
 		this.defaultInput = defaultInput;
 		this.standardImportJar = standardImportJar;
+		this.defaultClasspath = defaultClasspath;
 	}
 	
 	/**
@@ -139,6 +142,13 @@ public class Language {
 	 */
 	public String getStandardImportJar() {
 		return standardImportJar;
+	}
+
+	/**
+	 * Returns the default classpath.
+	 */
+	public String getDefaultClasspath() {
+		return defaultClasspath;
 	}
 
 	/**
