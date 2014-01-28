@@ -177,7 +177,7 @@ public class EditorText {
 					}
 				}
 		
-				if(event.character > 0) {
+				if(event.character > 0 || event.keyCode == SWT.HOME) {
 					styledText.showSelection();
 					eventBus.post(new EnabledChangedEvent());
 				}
