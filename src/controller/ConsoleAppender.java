@@ -24,6 +24,7 @@ public class ConsoleAppender implements Appender {
 	private StringBuilder buffer = new StringBuilder();
 	private Timer timer = new Timer(true);
 	private boolean timerRunning = false;
+	private boolean closed = false;
 
 	/**
 	 * Creates a ConsoleAppender that appends to consoleText with a color. If color
@@ -62,7 +63,13 @@ public class ConsoleAppender implements Appender {
 	}
 	
 	private synchronized void flush() {
-		consoleText.append(buffer.toString());
-		buffer.setLength(0);
+		if(!closed) {
+			consoleText.append(buffer.toString());
+			buffer.setLength(0);
+		}
+	}
+	
+	public void close() {
+		closed = true;
 	}
 }

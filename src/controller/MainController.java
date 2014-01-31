@@ -27,7 +27,6 @@ public class MainController {
 	
 	private EventBus eventBus;
 	private Language language;
-	private Future<?> runningProgram;
 	private Callback<Boolean> runningChangedCallback;
 	
 	private File file = null;
@@ -35,9 +34,15 @@ public class MainController {
 	private String jarDir = null;
 	private String classpath = null;
 	
+	private Future<?> runningProgram;
+	private ConsoleAppender out;
+	private ConsoleAppender err;
+	private ConsoleAppender info;
+	
 	public MainController(Shell shell, final EventBus eventBus, EditorText editorText, InputText inputText, ConsoleText consoleText) {
 		this.shell = shell;
 		this.eventBus = eventBus;
+		
 		this.editorText = editorText;
 		this.inputText = inputText;
 		this.consoleText = consoleText;
@@ -160,9 +165,9 @@ public class MainController {
 		stop();
 		consoleText.clear();
 		
-		ConsoleAppender out = new ConsoleAppender(consoleText, null);
-		ConsoleAppender err = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_RED);
-		ConsoleAppender info = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_BLUE);
+		out = new ConsoleAppender(consoleText, null);
+		err = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_RED);
+		info = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_BLUE);
 		
 		Compiler compiler = new Compiler(language, jarDir, classpath);
 		runningProgram = compiler.runFile(source, input, out, err, info, new Callback<Void>() {
@@ -178,6 +183,10 @@ public class MainController {
 		if(runningProgram != null) {
 			runningProgram.cancel(true);
 		}
+		
+		if(out != null) out.close();
+		if(err != null) err.close();
+		if(info != null) info.close();
 	}
 
 	public void setRunningChangedCallback(Callback<Boolean> callback) {
