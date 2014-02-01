@@ -69,7 +69,7 @@ public class ConsoleAppender implements Appender {
 		}
 	}
 	
-	public void close() {
+	public synchronized void close() {
 		closed = true;
 	}
 }
