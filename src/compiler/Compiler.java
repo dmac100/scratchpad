@@ -103,7 +103,11 @@ public class Compiler {
 				writer.append(input);
 			}
 			
-			runProcess.waitFor();
+			int exitValue = runProcess.waitFor();
+			if(exitValue != 0) {
+				err.append("Exited with error value: " + exitValue);
+			}
+			
 			runProcess = null;
 		} catch(IOException e) {
 			info.append("ERROR: IOException running program: " + e.getMessage() + "\n");
