@@ -87,7 +87,6 @@ public class Main {
 			})
 			.setAccelerator(SWT.CONTROL | 'o')
 			.addSeparator()
-			
 			.addItem("&Save\tCtrl+S").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
@@ -102,7 +101,6 @@ public class Main {
 				}
 			})
 			.setAccelerator(SWT.CONTROL | 's')
-			
 			.addItem("Save &As...\tShift+Ctrl+S").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
@@ -114,7 +112,6 @@ public class Main {
 			})
 			.setAccelerator(SWT.CONTROL | SWT.SHIFT | 's')
 			.addSeparator()
-			
 			.addItem("E&xit\tCtrl+Q").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					shell.dispose();
@@ -134,7 +131,6 @@ public class Main {
 			})
 			.setAccelerator(SWT.CONTROL | 'z')
 			.setEnabled(mainController.undoEnabled())
-			
 			.addItem("&Redo\tCtrl+Y").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
@@ -146,7 +142,6 @@ public class Main {
 			}).setEnabled(mainController.redoEnabled())
 			.setAccelerator(SWT.CONTROL | 'y')
 			.addSeparator()
-			
 			.addItem("Cu&t\tCtrl+X").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
@@ -158,7 +153,6 @@ public class Main {
 			})
 			.setAccelerator(SWT.CONTROL | 'x')
 			.setEnabled(mainController.cutEnabled())
-			
 			.addItem("&Copy\tCtrl+C").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
@@ -170,7 +164,6 @@ public class Main {
 			})
 			.setAccelerator(SWT.CONTROL | 'c')
 			.setEnabled(mainController.copyEnabled())
-			
 			.addItem("&Paste\tCtrl+V").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
@@ -183,7 +176,6 @@ public class Main {
 			.setAccelerator(SWT.CONTROL | 'v')
 			.setEnabled(mainController.pasteEnabled())
 			.addSeparator()
-			
 			.addItem("&Find/Replace...\tCtrl+F").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
@@ -194,9 +186,7 @@ public class Main {
 				}
 			})
 			.setAccelerator(SWT.CONTROL | 'f')
-			
 			.addSeparator()
-			
 			.addItem("Add &Import...\tCtrl+I").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					mainController.addImport();
@@ -204,9 +194,7 @@ public class Main {
 			})
 			.setEnabled(mainController.importEnabled())
 			.setAccelerator(SWT.CONTROL | 'i')
-			
 			.addSeparator()
-			
 			.addItem("Convert Spaces to Tabs").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
@@ -216,7 +204,6 @@ public class Main {
 					}
 				}
 			})
-			
 			.addItem("Convert Tabs to Spaces").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					try {
@@ -225,9 +212,9 @@ public class Main {
 						displayException(e);
 					}
 				}
-			})
-			
-		.addMenu("&View")
+			});
+		
+		menuBuilder.addMenu("&View")
 			.addItem("&Show Input Pane\tCtrl+I").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					setInputPaneVisible(true);
@@ -235,16 +222,15 @@ public class Main {
 			})
 			.setAccelerator(SWT.CTRL | 'i')
 			.setEnabled(!inputVisible)
-			
 			.addItem("&Hide Input Pane\tCtrl+I").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					setInputPaneVisible(false);
 				}
 			})
 			.setAccelerator(SWT.CTRL | 'i')
-			.setEnabled(inputVisible)
-			
-			.build();
+			.setEnabled(inputVisible);
+		
+		menuBuilder.build();
 	}
 	
 	private void open() throws IOException {
@@ -374,7 +360,7 @@ public class Main {
 		
 		DropTarget target = new DropTarget(parent, DND.DROP_COPY | DND.DROP_DEFAULT);
 		target.setTransfer(new Transfer[] { fileTransfer });
-		target.addDropListener(new DropTargetListener() {
+		target.addDropListener(new DropTargetAdapter() {
 			public void dragEnter(DropTargetEvent event) {
 				if(event.detail == DND.DROP_DEFAULT) {
 					if((event.operations & DND.DROP_COPY) > 0) {
@@ -396,18 +382,6 @@ public class Main {
 						}
 					}
 				}
-			}
-			
-			public void dropAccept(DropTargetEvent event) {
-			}
-			
-			public void dragOver(DropTargetEvent event) {
-			}
-			
-			public void dragOperationChanged(DropTargetEvent event) {
-			}
-			
-			public void dragLeave(DropTargetEvent event) {
 			}
 		});
 	}
