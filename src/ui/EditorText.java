@@ -415,6 +415,7 @@ public class EditorText {
 			text = text.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
 			styledText.setText(text);
 			styledText.setCaretOffset(offset);
+			styledText.showSelection();
 		}
 	}
 	
