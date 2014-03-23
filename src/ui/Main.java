@@ -187,13 +187,13 @@ public class Main {
 			})
 			.setAccelerator(SWT.CONTROL | 'f')
 			.addSeparator()
-			.addItem("Add &Import...\tCtrl+I").addSelectionListener(new SelectionAdapter() {
+			.addItem("Add &Import...\tCtrl+Shift+I").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
 					mainController.addImport();
 				}
 			})
 			.setEnabled(mainController.importEnabled())
-			.setAccelerator(SWT.CONTROL | 'i')
+			.setAccelerator(SWT.CONTROL | SWT.SHIFT | 'i')
 			.addSeparator()
 			.addItem("Convert Spaces to Tabs").addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
