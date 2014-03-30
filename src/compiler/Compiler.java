@@ -15,7 +15,6 @@ public class Compiler {
 	private static ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build());
 	
 	private final Language language;
-	private final String jarDir;
 	private final String classpath;
 	
 	private static class StreamReader implements Runnable {
@@ -44,9 +43,8 @@ public class Compiler {
 		}
 	}
 	
-	public Compiler(Language language, String jarDir, String classpath) {
+	public Compiler(Language language, String classpath) {
 		this.language = language;
-		this.jarDir = jarDir;
 		this.classpath = classpath;
 	}
 
@@ -83,7 +81,7 @@ public class Compiler {
 			
 			FileUtils.write(source, contents, StandardCharsets.UTF_8);
 			
-			compilerProcess = language.createCompiler(dir, name, getClasspath());
+			compilerProcess = language.createCompiler(dir, name, classpath);
 			if(compilerProcess != null) {
 				executor.submit(new StreamReader("Compiler Output", compilerProcess.getInputStream(), out, info));
 				executor.submit(new StreamReader("Compiler Error", compilerProcess.getErrorStream(), err, info));
@@ -94,7 +92,7 @@ public class Compiler {
 				}
 			}
 			
-			runProcess = language.runProgram(dir, name, getClasspath());
+			runProcess = language.runProgram(dir, name, classpath);
 			
 			executor.submit(new StreamReader("Output", runProcess.getInputStream(), out, info));
 			executor.submit(new StreamReader("Error", runProcess.getErrorStream(), err, info));
@@ -130,35 +128,5 @@ public class Compiler {
 			
 			finishedCallback.onCallback(null);
 		}
-	}
-	
-	private String getClasspath() {
-		if(classpath != null) {
-			return classpath;
-		} else if(jarDir != null) {
-			return getClasspath(jarDir);
-		} else {
-			return language.getDefaultClasspath();
-		}
-	}
-	
-	/**
-	 * Returns the classpath containing all the jar files in jarDir.
-	 */
-	private static String getClasspath(String jarDir) {
-		StringBuilder classpath = new StringBuilder(".");
-		
-		String[] files = new File(jarDir).list();
-		
-		if(files != null) {
-			for(String file:files) {
-				if(file.toLowerCase().endsWith(".jar")) {
-					classpath.append(File.pathSeparator);
-					classpath.append(new File(jarDir, file));
-				}
-			}
-		}
-		
-		return classpath.toString();
 	}
 }

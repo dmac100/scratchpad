@@ -2,6 +2,8 @@ package controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -169,7 +171,7 @@ public class MainController {
 		err = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_RED);
 		info = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_BLUE);
 		
-		Compiler compiler = new Compiler(language, jarDir, classpath);
+		Compiler compiler = new Compiler(language, getClasspath());
 		runningProgram = compiler.runFile(source, input, out, err, info, new Callback<Void>() {
 			public void onCallback(Void param) {
 				fireRunningChanged(false);
@@ -326,25 +328,40 @@ public class MainController {
 			jars.add(language.getStandardImportJar());
 		}
 		
-		if(jarDir != null) {
-			String[] files = new File(jarDir).list();
-			if(files != null) {
-				for(String file:files) {
-					if(file.toLowerCase().endsWith(".jar")) {
-						jars.add(new File(jarDir, file).getAbsolutePath());
-					}
-				}
-			}
-		}
-		
-		if(classpath != null) {
-			for(String path:classpath.split("[;:]")) {
-				jars.add(new File(path).getAbsolutePath());
-			}
-		}
+		jars.addAll(Importer.getJarsInClasspath(getClasspath()));
 		
 		Importer importer = new Importer(jars);
 		ImportDialog dialog = new ImportDialog(shell, importer, editorText.getStyledText());
 		dialog.open(editorText.getSelectedText());
+	}
+	
+	private String getClasspath() {
+		if(classpath != null) {
+			return classpath;
+		} else if(jarDir != null) {
+			return getClasspath(jarDir);
+		} else {
+			return language.getDefaultClasspath();
+		}
+	}
+	
+	/**
+	 * Returns the classpath containing all the jar files in jarDir.
+	 */
+	private static String getClasspath(String jarDir) {
+		StringBuilder classpath = new StringBuilder(".");
+		
+		String[] files = new File(jarDir).list();
+		
+		if(files != null) {
+			for(String file:files) {
+				if(file.toLowerCase().endsWith(".jar")) {
+					classpath.append(File.pathSeparator);
+					classpath.append(new File(jarDir, file));
+				}
+			}
+		}
+		
+		return classpath.toString();
 	}
 }

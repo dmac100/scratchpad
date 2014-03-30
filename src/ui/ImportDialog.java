@@ -1,5 +1,7 @@
 package ui;
 
+import java.util.Set;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -127,7 +129,7 @@ public class ImportDialog extends Dialog {
 	public void addImports(String className) {
 		if(className.length() == 0) return;
 		
-		java.util.List<String> imports = importer.findImports(className);
+		Set<String> imports = importer.findImports(className);
 		
 		table.removeAll();
 		for(String item:imports) {
