@@ -31,7 +31,19 @@ public class Languages {
 		List<Language> languages = new ArrayList<>();
 		
 		try {
-			Document document = getXmlDocument("/compiler/languages.xml");
+			Document document;
+			
+			// Read config from either ~/.languages.xml or classpath:/compiler/languages.xml
+			File userConfig = new File(System.getProperty("user.home"), ".languages.xml");
+			if(userConfig.exists()) {
+				try(InputStream inputStream = new FileInputStream(userConfig)) {
+					document = getXmlDocument(inputStream);
+				}
+			} else {
+				try(InputStream inputStream = getClass().getResourceAsStream("/compiler/languages.xml")) {
+					document = getXmlDocument(inputStream);
+				}
+			}
 			
 			for(Element language:document.getRootElement().getChildren("language")) {
 				Language parsed = parseLanguage(language);
@@ -40,7 +52,7 @@ public class Languages {
 				}
 			}
 		} catch(Exception e) {
-			System.err.println("Error parsing languages: + e");
+			System.err.println("Error parsing languages: " + e);
 		}
 		
 		return languages;
@@ -124,10 +136,9 @@ public class Languages {
 	}
 
 	/**
-	 * Returns the xml document created by reading a file from the classpath.
+	 * Returns the xml document created by reading an InputStream.
 	 */
-	private Document getXmlDocument(String path) throws IOException, JDOMException {
-		InputStream inputStream = getClass().getResourceAsStream(path);
+	private Document getXmlDocument(InputStream inputStream) throws IOException, JDOMException {
 		try {
 			String text = IOUtils.toString(inputStream);
 			return new SAXBuilder().build(new StringReader(text));
