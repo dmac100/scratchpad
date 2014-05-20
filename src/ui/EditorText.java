@@ -576,7 +576,11 @@ public class EditorText {
 	}
 
 	public void convertSpacesToTabs() {
-		styledText.setText(styledText.getText().replaceAll("    ", "\t"));
+		String text = styledText.getText();
+		text = text.replaceAll("\t", "    ");
+		text = text.replaceAll("    ", "\t");
+		text = text.replaceAll("\t +", "\t");
+		styledText.setText(text);
 	}
 	
 	public void convertTabsToSpaces() {
