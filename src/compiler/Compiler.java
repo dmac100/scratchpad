@@ -83,9 +83,14 @@ public class Compiler {
 			
 			compilerProcess = language.createCompiler(dir, name, classpath);
 			if(compilerProcess != null) {
-				executor.submit(new StreamReader("Compiler Output", compilerProcess.getInputStream(), out, info));
-				executor.submit(new StreamReader("Compiler Error", compilerProcess.getErrorStream(), err, info));
+				Future<?> outFuture = executor.submit(new StreamReader("Compiler Output", compilerProcess.getInputStream(), out, info));
+				Future<?> errFuture = executor.submit(new StreamReader("Compiler Error", compilerProcess.getErrorStream(), err, info));
+				
+				// Wait for program to exit and all output to be read.
+				outFuture.get();
+				errFuture.get();
 				int result = compilerProcess.waitFor();
+				
 				compilerProcess = null;
 				if(result != 0) {
 					return;
@@ -94,21 +99,25 @@ public class Compiler {
 			
 			runProcess = language.runProgram(dir, name, classpath);
 			
-			executor.submit(new StreamReader("Output", runProcess.getInputStream(), out, info));
-			executor.submit(new StreamReader("Error", runProcess.getErrorStream(), err, info));
+			Future<?> outFuture = executor.submit(new StreamReader("Output", runProcess.getInputStream(), out, info));
+			Future<?> errFuture = executor.submit(new StreamReader("Error", runProcess.getErrorStream(), err, info));
 
 			try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(runProcess.getOutputStream(), StandardCharsets.UTF_8))) {
 				writer.append(input);
 			}
 			
+			// Wait for program to exit and all output to be read.
+			outFuture.get();
+			errFuture.get();
 			int exitValue = runProcess.waitFor();
+			
 			if(exitValue != 0) {
 				err.append("Exited with error value: " + exitValue);
 			}
 			
 			runProcess = null;
-		} catch(IOException e) {
-			info.append("ERROR: IOException running program: " + e.getMessage() + "\n");
+		} catch(Exception e) {
+			info.append("ERROR: Exception running program: " + e.getMessage() + "\n");
 			e.printStackTrace();
 		} finally {
 			if(compilerProcess != null) {
