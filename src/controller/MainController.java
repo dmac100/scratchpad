@@ -171,12 +171,16 @@ public class MainController {
 		err = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_RED);
 		info = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_BLUE);
 		
-		Compiler compiler = new Compiler(language, getClasspath());
-		runningProgram = compiler.runFile(source, input, out, err, info, new Callback<Void>() {
-			public void onCallback(Void param) {
-				fireRunningChanged(false);
-			}
-		});
+		try {
+			Compiler compiler = new Compiler(language, getClasspath());
+			runningProgram = compiler.runFile(source, input, out, err, info, new Callback<Void>() {
+				public void onCallback(Void param) {
+					fireRunningChanged(false);
+				}
+			});
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 		
 		fireRunningChanged(true);
 	}
