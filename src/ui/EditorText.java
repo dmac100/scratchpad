@@ -502,22 +502,41 @@ public class EditorText {
 			if(match.isPresent()) {
 				int x = match.get();
 
-				Color existingForeground = null;
-				for(StyleRange range:syntaxHighlightingRanges) {
-					if(range.start <= x && range.start + range.length > x) {
-						existingForeground = range.foreground;
-					}
-				}
-				
 				StyleRange range = new StyleRange();
 				range.start = x;
 				range.length = 1;
-				range.foreground = existingForeground;
+				range.foreground = getForegroundAt(x);
 				range.borderStyle = SWT.BORDER_SOLID;
 				range.borderColor = colorCache.getColor(150, 150, 150);
 				styledText.setStyleRange(range);
 			}
 		}
+		
+		// Set matching word highlighting
+		String selected = styledText.getSelectionText();
+		if(selected.matches("[\\w]+")) {
+			String text = styledText.getText();
+			
+			int index = -1;
+			while((index = text.indexOf(selected, index + 1)) >= 0) {
+				StyleRange range = new StyleRange();
+				range.start = index;
+				range.length = selected.length();
+				range.foreground = getForegroundAt(index);
+				range.borderStyle = SWT.BORDER_SOLID;
+				range.borderColor = colorCache.getColor(150, 150, 150);
+				styledText.setStyleRange(range);
+			}
+		}
+	}
+	
+	private Color getForegroundAt(int index) {
+		for(StyleRange range:syntaxHighlightingRanges) {
+			if(range.start <= index && range.start + range.length > index) {
+				return range.foreground;
+			}
+		}
+		return null;
 	}
 	
 	/**
