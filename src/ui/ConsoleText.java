@@ -27,6 +27,7 @@ public class ConsoleText {
 	public ConsoleText(Composite parent) {
 		text = new StyledText(parent, SWT.WRAP | SWT.V_SCROLL);
 		text.setEditable(false);
+		text.setTabs(8);
 		text.setMargins(3, 0, 3, 0);
 		
 		text.addKeyListener(new KeyAdapter() {
