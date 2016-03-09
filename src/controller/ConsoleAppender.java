@@ -47,14 +47,14 @@ public class ConsoleAppender implements Appender {
 			
 			timer.schedule(new TimerTask() {
 				public void run() {
-					timerRunning = false;
 					timerFinished();
 				}
 			}, 100);
 		}
 	}
 	
-	private void timerFinished() {
+	private synchronized void timerFinished() {
+		timerRunning = false;
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
 				flush();
