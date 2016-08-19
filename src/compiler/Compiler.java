@@ -1,9 +1,19 @@
 package compiler;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.util.concurrent.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.commons.io.FileUtils;
 
@@ -15,16 +25,15 @@ public class Compiler {
 	private static ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build());
 	
 	private final Language language;
+	private final String depCommand;
 	private final String classpath;
 	
 	private static class StreamReader implements Runnable {
 		private BufferedReader reader;
 		private Appender appender;
 		private Appender info;
-		private String name;
 		
-		public StreamReader(String name, InputStream inputStream, Appender appender, Appender info) {
-			this.name = name;
+		public StreamReader(InputStream inputStream, Appender appender, Appender info) {
 			this.reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
 			this.appender = appender;
 			this.info = info;
@@ -37,14 +46,15 @@ public class Compiler {
 					appender.append(line + "\n");
 				}
 			} catch(IOException e) {
-				info.append("ERROR: IOException reading stream: " + name + "\n");
+				info.append("ERROR: IOException reading stream.\n");
 				e.printStackTrace();
 			}
 		}
 	}
 	
-	public Compiler(Language language, String classpath) {
+	public Compiler(Language language, String depCommand, String classpath) {
 		this.language = language;
+		this.depCommand = depCommand;
 		this.classpath = classpath;
 	}
 
@@ -70,8 +80,6 @@ public class Compiler {
 	
 	private void runFileSync(String contents, String input, Appender out, Appender err, Appender info, Callback<Void> finishedCallback) throws InterruptedException {
 		File dir = null;
-		Process compilerProcess = null;
-		Process runProcess = null;
 		
 		try {
 			String name = language.getFileName(contents);
@@ -81,53 +89,20 @@ public class Compiler {
 			
 			FileUtils.write(source, contents, StandardCharsets.UTF_8);
 			
-			compilerProcess = language.createCompiler(dir, name, classpath);
-			if(compilerProcess != null) {
-				Future<?> outFuture = executor.submit(new StreamReader("Compiler Output", compilerProcess.getInputStream(), out, info));
-				Future<?> errFuture = executor.submit(new StreamReader("Compiler Error", compilerProcess.getErrorStream(), err, info));
-				
-				// Wait for program to exit and all output to be read.
-				outFuture.get();
-				errFuture.get();
-				int result = compilerProcess.waitFor();
-				
-				compilerProcess = null;
-				if(result != 0) {
+			for(ProcessBuilder compilerProcessBuilder:language.createCompilers(dir, name, contents, depCommand, classpath)) {
+				if(runProcess(compilerProcessBuilder, out, err, info, input) != 0) {
 					return;
 				}
 			}
 			
-			runProcess = language.runProgram(dir, name, classpath);
-			
-			Future<?> outFuture = executor.submit(new StreamReader("Output", runProcess.getInputStream(), out, info));
-			Future<?> errFuture = executor.submit(new StreamReader("Error", runProcess.getErrorStream(), err, info));
-
-			try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(runProcess.getOutputStream(), StandardCharsets.UTF_8))) {
-				writer.append(input);
-			}
-			
-			// Wait for program to exit and all output to be read.
-			outFuture.get();
-			errFuture.get();
-			int exitValue = runProcess.waitFor();
-			
+			int exitValue = runProcess(language.runProgram(dir, name, contents, classpath), out, err, info, input);
 			if(exitValue != 0) {
 				err.append("Exited with error value: " + exitValue);
 			}
-			
-			runProcess = null;
 		} catch(Exception e) {
 			info.append("ERROR: Exception running program: " + e.getMessage() + "\n");
 			e.printStackTrace();
 		} finally {
-			if(compilerProcess != null) {
-				compilerProcess.destroy();
-			}
-			
-			if(runProcess != null) {
-				runProcess.destroy();
-			}
-			
 			if(dir != null) {
 				try {
 					FileUtils.deleteDirectory(dir);
@@ -136,6 +111,27 @@ public class Compiler {
 			}
 			
 			finishedCallback.onCallback(null);
+		}
+	}
+	
+	private int runProcess(ProcessBuilder processBuilder, Appender out, Appender err, Appender info, String input) throws IOException, InterruptedException, ExecutionException {
+		Process process = processBuilder.start();
+		
+		try {
+			Future<?> outFuture = executor.submit(new StreamReader(process.getInputStream(), out, info));
+			Future<?> errFuture = executor.submit(new StreamReader(process.getErrorStream(), err, info));
+	
+			// Send input to process.
+			try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8))) {
+				writer.append(input);
+			}
+			
+			// Wait for program to exit and all output to be read.
+			outFuture.get();
+			errFuture.get();
+			return process.waitFor();
+		} finally {
+			process.destroy();
 		}
 	}
 }

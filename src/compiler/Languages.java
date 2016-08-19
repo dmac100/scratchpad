@@ -71,6 +71,7 @@ public class Languages {
 		String template = getChild(languageElement, "template");
 		String defaultInput = getChild(languageElement, "defaultInput");
 		String standardImportJar = getChild(languageElement, "standardImportJar");
+		String depCommand = getChild(languageElement, "depCommand");
 		String defaultClasspath = getChild(languageElement, "defaultClasspath");
 		
 		// Add defaults for non-optional parameters.
@@ -92,6 +93,7 @@ public class Languages {
 			template,
 			defaultInput,
 			standardImportJar,
+			depCommand,
 			defaultClasspath
 		);
 	}

@@ -2,7 +2,11 @@ package compiler;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import syntaxhighlighter.brush.Brush;
 import util.StringUtil;
@@ -17,6 +21,7 @@ public class Language {
 	private String template;
 	private String defaultInput;
 	private String standardImportJar;
+	private String depCommand;
 	private String defaultClasspath;
 
 	/**
@@ -31,10 +36,11 @@ public class Language {
 	 * @param template the initial contents for the source code template.
 	 * @param defaultInput the initial contents for the program input, or null if there is no default input.
 	 * @param standardImportJar the jar that contains the libraries for the standard imports.
+	 * @param depCommand the command used to download dependencies.
 	 * @param defaultClasspath the classpath to use if it is not specified elsewhere.
 	 */
 	public Language(String name, String extension, Brush brush, String compiler, String run,
-			String filenameMatcher, String template, String defaultInput, String standardImportJar, String defaultClasspath) {
+			String filenameMatcher, String template, String defaultInput, String standardImportJar, String depCommand, String defaultClasspath) {
 		
 		this.name = name;
 		this.extension = extension;
@@ -45,49 +51,66 @@ public class Language {
 		this.template = template;
 		this.defaultInput = defaultInput;
 		this.standardImportJar = standardImportJar;
+		this.depCommand = depCommand;
 		this.defaultClasspath = defaultClasspath;
 	}
 	
 	/**
-	 * Starts and returns a process for a compiler, or null if no compilation is needed.
+	 * Returns a list of process builders for any compilers that are needed.
 	 * @param dir the directory to run in.
 	 * @param name the name of the file excluding the extension.
+	 * @param depCommand the command used to download dependencies.
 	 * @param classpath the Java classpath.
 	 */
-	public Process createCompiler(File dir, String name, String classpath) throws IOException {
-		if(compiler == null) {
-			return null;
+	public List<ProcessBuilder> createCompilers(File dir, String name, String contents, String depCommand, String classpath) throws IOException {
+		List<ProcessBuilder> compilers = new ArrayList<>();
+
+		if(depCommand != null) {
+			// Download any dependencies marked in the source code as "// DEP: ..."
+			for(String line:contents.split("\n")) {
+				Matcher matcher = Pattern.compile("// DEP: (.*)").matcher(line);
+				if(matcher.find()) {
+					String dep = matcher.group(1);
+					compilers.add(new ProcessBuilder()
+						.directory(dir)
+						.command(Arrays.asList((depCommand + " " + dep).split(" +")))
+					);
+				}
+			}
 		}
 		
-		return createProcess(dir, name, compiler, classpath);
+		if(compiler != null) {
+			compilers.add(createProcess(dir, name, compiler, classpath));
+		}
+		
+		return compilers;
 	}
 
 	/**
-	 * Starts and returns a process to run a file in this language.
+	 * Returns a process builder to run a file in this language.
 	 * @param dir the directory to run in.
 	 * @param name the name of the file excluding the extension.
 	 * @param classpath the Java classpath.
 	 */
-	public Process runProgram(File dir, String name, String classpath) throws IOException {
+	public ProcessBuilder runProgram(File dir, String name, String contents, String classpath) throws IOException {
 		if(run == null) {
 			return new ProcessBuilder()
 				.directory(dir)
-				.command(new File(dir, "main").getPath())
-				.start();
+				.command(new File(dir, "main").getPath());
 		} else {
 			return createProcess(dir, name, run, classpath);
 		}
 	}
 
 	/**
-	 * Starts and returns a new process.
+	 * Returns a builder for a new process.
 	 * @param dir the directory to run in.
 	 * @param name the name of the file excluding the extension.
 	 * @param line the commandline to execute. The line is separated by spaces and then
 	 *             variable substitutions are performed on $NAME, $EXT, and $CLASSPATH.
 	 * @param classpath the Java classpath.
 	 */
-	private Process createProcess(File dir, String name, String line, String classpath) throws IOException {
+	private ProcessBuilder createProcess(File dir, String name, String line, String classpath) throws IOException {
 		String[] args = line.split(" ");
 		for(int i = 0; i < args.length; i++) {
 			args[i] = args[i]
@@ -98,8 +121,7 @@ public class Language {
 		
 		return new ProcessBuilder()
 			.directory(dir)
-			.command(args)
-			.start();
+			.command(args);
 	}
 	
 	/**
@@ -142,6 +164,13 @@ public class Language {
 	 */
 	public String getStandardImportJar() {
 		return standardImportJar;
+	}
+	
+	/**
+	 * Returns the command used to download dependencies.
+	 */
+	public String getDepCommand() {
+		return depCommand;
 	}
 
 	/**
