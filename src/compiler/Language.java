@@ -2,16 +2,24 @@ package compiler;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.io.FileUtils;
 
 import syntaxhighlighter.brush.Brush;
 import util.StringUtil;
 
 public class Language {
+	private final Map<String, File> dependencyDirs = new HashMap<>();
+	
 	private String name;
 	private String extension;
 	private Brush brush;
@@ -56,14 +64,13 @@ public class Language {
 	}
 	
 	/**
-	 * Returns a list of process builders for any compilers that are needed.
+	 * Returns a list of callable processes for any compilers that are needed.
 	 * @param dir the directory to run in.
 	 * @param name the name of the file excluding the extension.
-	 * @param depCommand the command used to download dependencies.
 	 * @param classpath the Java classpath.
 	 */
-	public List<ProcessBuilder> createCompilers(File dir, String name, String contents, String depCommand, String classpath) throws IOException {
-		List<ProcessBuilder> compilers = new ArrayList<>();
+	public List<Callable<Process>> createCompilers(File dir, String name, String contents, String classpath) throws IOException {
+		List<Callable<Process>> compilers = new ArrayList<>();
 
 		if(depCommand != null) {
 			// Download any dependencies marked in the source code as "// DEP: ..."
@@ -71,10 +78,7 @@ public class Language {
 				Matcher matcher = Pattern.compile("// DEP: (.*)").matcher(line);
 				if(matcher.find()) {
 					String dep = matcher.group(1);
-					compilers.add(new ProcessBuilder()
-						.directory(dir)
-						.command(Arrays.asList((depCommand + " " + dep).split(" +")))
-					);
+					compilers.addAll(createDepCommand(dir, dep));
 				}
 			}
 		}
@@ -87,16 +91,39 @@ public class Language {
 	}
 
 	/**
-	 * Returns a process builder to run a file in this language.
+	 * Creates callable processes to copy a dependency dep into the directory dir.
+	 */
+	private List<Callable<Process>> createDepCommand(File dir, String dep) throws IOException {
+		List<Callable<Process>> processes = new ArrayList<>();
+		
+		if(!dependencyDirs.containsKey(dep)) {
+			// Create directory to store dependency.
+			File dependencyDir = Files.createTempDirectory("dependency-" + dep.replaceAll("[ .]", "_").replaceAll("\\W", "") + "-").toFile();
+			dependencyDirs.put(dep, dependencyDir);
+
+			// Create process to download dependency.
+			processes.add(createCallable(new ProcessBuilder()
+				.directory(dependencyDir)
+				.command(Arrays.asList((depCommand + " " + dep).split(" +")))));
+		}
+		
+		// Create process to copy dependency to dir.
+		processes.add(createCopyProcess(dependencyDirs.get(dep), dir));
+		
+		return processes;
+	}
+
+	/**
+	 * Returns a callable process to run a file in this language.
 	 * @param dir the directory to run in.
 	 * @param name the name of the file excluding the extension.
 	 * @param classpath the Java classpath.
 	 */
-	public ProcessBuilder runProgram(File dir, String name, String contents, String classpath) throws IOException {
+	public Callable<Process> runProgram(File dir, String name, String contents, String classpath) throws IOException {
 		if(run == null) {
-			return new ProcessBuilder()
+			return createCallable(new ProcessBuilder()
 				.directory(dir)
-				.command(new File(dir, "main").getPath());
+				.command(new File(dir, "main").getPath()));
 		} else {
 			return createProcess(dir, name, run, classpath);
 		}
@@ -110,7 +137,7 @@ public class Language {
 	 *             variable substitutions are performed on $NAME, $EXT, and $CLASSPATH.
 	 * @param classpath the Java classpath.
 	 */
-	private ProcessBuilder createProcess(File dir, String name, String line, String classpath) throws IOException {
+	private Callable<Process> createProcess(File dir, String name, String line, String classpath) throws IOException {
 		String[] args = line.split(" ");
 		for(int i = 0; i < args.length; i++) {
 			args[i] = args[i]
@@ -119,9 +146,9 @@ public class Language {
 				.replaceAll("\\$EXT", extension);
 		}
 		
-		return new ProcessBuilder()
+		return createCallable(new ProcessBuilder()
 			.directory(dir)
-			.command(args);
+			.command(args));
 	}
 	
 	/**
@@ -191,5 +218,24 @@ public class Language {
 			String match = StringUtil.match(contents, filenameMatcher);
 			return (match == null) ? "Main" : match;
 		}
+	}
+
+	/**
+	 * Creates a callable process that copies files from source to destination.
+	 */
+	private static Callable<Process> createCopyProcess(File source, File destination) {
+		return new Callable<Process>() {
+			public Process call() throws Exception {
+				FileUtils.copyDirectory(source, destination);
+				return new NullProcess();
+			}
+		};
+	}
+	
+	/**
+	 * Creates a callable process from a process builder.
+	 */
+	private static Callable<Process> createCallable(ProcessBuilder processBuilder) {
+		return () -> processBuilder.start();
 	}
 }

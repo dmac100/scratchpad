@@ -10,22 +10,20 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.commons.io.FileUtils;
 
-import ui.Callback;
-
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
+import ui.Callback;
 
 public class Compiler {
 	private static ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build());
 	
 	private final Language language;
-	private final String depCommand;
 	private final String classpath;
 	
 	private static class StreamReader implements Runnable {
@@ -52,9 +50,8 @@ public class Compiler {
 		}
 	}
 	
-	public Compiler(Language language, String depCommand, String classpath) {
+	public Compiler(Language language, String classpath) {
 		this.language = language;
-		this.depCommand = depCommand;
 		this.classpath = classpath;
 	}
 
@@ -89,7 +86,7 @@ public class Compiler {
 			
 			FileUtils.write(source, contents, StandardCharsets.UTF_8);
 			
-			for(ProcessBuilder compilerProcessBuilder:language.createCompilers(dir, name, contents, depCommand, classpath)) {
+			for(Callable<Process> compilerProcessBuilder:language.createCompilers(dir, name, contents, classpath)) {
 				if(runProcess(compilerProcessBuilder, out, err, info, input) != 0) {
 					return;
 				}
@@ -114,8 +111,8 @@ public class Compiler {
 		}
 	}
 	
-	private int runProcess(ProcessBuilder processBuilder, Appender out, Appender err, Appender info, String input) throws IOException, InterruptedException, ExecutionException {
-		Process process = processBuilder.start();
+	private int runProcess(Callable<Process> processBuilder, Appender out, Appender err, Appender info, String input) throws Exception {
+		Process process = processBuilder.call();
 		
 		try {
 			Future<?> outFuture = executor.submit(new StreamReader(process.getInputStream(), out, info));

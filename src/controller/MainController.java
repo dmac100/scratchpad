@@ -172,7 +172,7 @@ public class MainController {
 		info = new ConsoleAppender(consoleText, ConsoleAppender.COLOR_BLUE);
 		
 		try {
-			Compiler compiler = new Compiler(language, language.getDepCommand(), getClasspath());
+			Compiler compiler = new Compiler(language, getClasspath());
 			runningProgram = compiler.runFile(source, input, out, err, info, new Callback<Void>() {
 				public void onCallback(Void param) {
 					fireRunningChanged(false);
