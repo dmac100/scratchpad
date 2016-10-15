@@ -402,8 +402,12 @@ public class Main {
 		main.addFileDropTarget(shell);
 
 		while(!shell.isDisposed()) {
-			if(!display.readAndDispatch()) {
-				display.sleep();
+			try {
+				if(!display.readAndDispatch()) {
+					display.sleep();
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
 			}
 		}
 
