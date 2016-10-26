@@ -87,7 +87,7 @@ public class Compiler {
 			FileUtils.write(source, contents, StandardCharsets.UTF_8);
 			
 			for(Callable<Process> compilerProcessBuilder:language.createCompilers(dir, name, contents, classpath)) {
-				if(runProcess(compilerProcessBuilder, out, err, info, input) != 0) {
+				if(runProcess(compilerProcessBuilder, out, err, info, null) != 0) {
 					return;
 				}
 			}
@@ -119,8 +119,14 @@ public class Compiler {
 			Future<?> errFuture = executor.submit(new StreamReader(process.getErrorStream(), err, info));
 	
 			// Send input to process.
-			try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8))) {
-				writer.append(input);
+			if(input != null) {
+				try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8))) {
+					writer.append(input);
+				} catch(IOException e) {
+					// Process can exit without reading input, leaving a broken pipe.
+					info.append("ERROR: Exception writing input: " + e.getMessage() + "\n");
+					e.printStackTrace();
+				}
 			}
 			
 			// Wait for program to exit and all output to be read.
