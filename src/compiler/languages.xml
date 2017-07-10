@@ -3,7 +3,9 @@
 	<language name="Java" extension="java" brush="BrushJava">
 		<compiler>javac -encoding utf-8 -cp $CLASSPATH $NAME.$EXT</compiler>
 		<run>java -cp $CLASSPATH $NAME</run>
-		<standardImportJar>/opt/icedtea-bin-6.1.11.4/jre/lib/rt.jar</standardImportJar>
+		<standardImportJar>/opt/icedtea-bin-7.2.4.1/jre/lib/rt.jar</standardImportJar>
+		<defaultClasspath>.:/home/david/programming/java/lib:/home/david/programming/java/lib/*:./lib/*</defaultClasspath>
+		<depCommand>java -jar /usr/share/ant-ivy-2/lib/ivy.jar -retrieve lib/[artifact]-[revision](-[classifier]).[ext] -dependency</depCommand>
 		<filenameMatcher>(?s)public +class +([\w\d]+)((?!class).)*public +static +void +main *\(</filenameMatcher>
 		<template>
 			<![CDATA[
@@ -13,9 +15,61 @@ import java.text.*;
 import java.math.*;
 import java.io.*;
 
+import org.junit.*;
+import org.junit.Assert.*;
+import static org.junit.Assert.*;
+
+import jsconsole.JsConsole;
+
 public class Main {
+	public Main() {
+	}
+
 	public static void main(String[] args) throws Exception {
 		System.out.println("Hello World!");
+		
+		//new Main();
+		//ConsoleTest.testClass(Main.class);
+		//new JsConsole().addVariable("main", new Main()).waitForExit();
+	}
+}
+			]]>
+		</template>
+	</language>
+
+	<language name="Java8" extension="java" brush="BrushJava">
+		<compiler>/home/david/opt/jdk1.8.0/bin/javac -encoding utf-8 -cp $CLASSPATH $NAME.$EXT</compiler>
+		<run>/home/david/opt/jdk1.8.0/bin/java -cp $CLASSPATH $NAME</run>
+		<standardImportJar>/home/david/opt/jdk1.8.0/jre/lib/rt.jar</standardImportJar>
+		<defaultClasspath>.:/home/david/programming/java/lib:/home/david/programming/java/lib/*:./lib/*</defaultClasspath>
+		<depCommand>java -jar /usr/share/ant-ivy-2/lib/ivy.jar -retrieve lib/[artifact]-[revision](-[classifier]).[ext] -dependency</depCommand>
+		<filenameMatcher>(?s)public +class +([\w\d]+)((?!class).)*public +static +void +main *\(</filenameMatcher>
+		<template>
+			<![CDATA[
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
+import java.util.regex.*;
+import java.text.*;
+import java.math.*;
+import java.io.*;
+
+import org.junit.*;
+import org.junit.Assert.*;
+import static org.junit.Assert.*;
+
+import jsconsole.JsConsole;
+
+public class Main {
+	public Main() {
+	}
+
+	public static void main(String[] args) throws Exception {
+		System.out.println("Hello World!");
+		
+		//new Main();
+		//ConsoleTest.testClass(Main.class);
+		//new JsConsole().addVariable("main", new Main()).waitForExit();
 	}
 }
 			]]>
@@ -25,7 +79,6 @@ public class Main {
 	<language name="Scala" extension="scala" brush="BrushScala">
 		<compiler>scalac -cp $CLASSPATH $NAME.$EXT</compiler>
 		<run>scala -cp $CLASSPATH $NAME</run>
-		<filenameMatcher>(?s)object +([\w\d]+)((?!class).)*def +main *\(</filenameMatcher>
 		<template>
 			<![CDATA[
 object Main {
@@ -69,7 +122,7 @@ int main(int argc, char *argv[]) {
 		<compiler>ghc -o main $NAME.$EXT</compiler>
 		<template>
 			<![CDATA[
-main = putStrLn "Hello World!"
+main = print $ "Hello World!"
 			]]>
 		</template>
 	</language>

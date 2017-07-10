@@ -71,6 +71,7 @@ public class Languages {
 		String template = getChild(languageElement, "template");
 		String defaultInput = getChild(languageElement, "defaultInput");
 		String standardImportJar = getChild(languageElement, "standardImportJar");
+		String initCommand = getChild(languageElement, "initCommand");
 		String depCommand = getChild(languageElement, "depCommand");
 		String defaultClasspath = getChild(languageElement, "defaultClasspath");
 		
@@ -93,6 +94,7 @@ public class Languages {
 			template,
 			defaultInput,
 			standardImportJar,
+			initCommand,
 			depCommand,
 			defaultClasspath
 		);

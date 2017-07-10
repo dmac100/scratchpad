@@ -29,6 +29,7 @@ public class Language {
 	private String template;
 	private String defaultInput;
 	private String standardImportJar;
+	private String initCommand;
 	private String depCommand;
 	private String defaultClasspath;
 
@@ -44,11 +45,12 @@ public class Language {
 	 * @param template the initial contents for the source code template.
 	 * @param defaultInput the initial contents for the program input, or null if there is no default input.
 	 * @param standardImportJar the jar that contains the libraries for the standard imports.
+	 * @param initCommand the command to run before others to initialize a project.
 	 * @param depCommand the command used to download dependencies.
 	 * @param defaultClasspath the classpath to use if it is not specified elsewhere.
 	 */
 	public Language(String name, String extension, Brush brush, String compiler, String run,
-			String filenameMatcher, String template, String defaultInput, String standardImportJar, String depCommand, String defaultClasspath) {
+			String filenameMatcher, String template, String defaultInput, String standardImportJar, String initCommand, String depCommand, String defaultClasspath) {
 		
 		this.name = name;
 		this.extension = extension;
@@ -59,6 +61,7 @@ public class Language {
 		this.template = template;
 		this.defaultInput = defaultInput;
 		this.standardImportJar = standardImportJar;
+		this.initCommand = initCommand;
 		this.depCommand = depCommand;
 		this.defaultClasspath = defaultClasspath;
 	}
@@ -72,6 +75,10 @@ public class Language {
 	public List<Callable<Process>> createCompilers(File dir, String name, String contents, String classpath) throws IOException {
 		List<Callable<Process>> compilers = new ArrayList<>();
 
+		if(initCommand != null) {
+			compilers.add(createProcess(dir, name, initCommand, classpath));
+		}
+		
 		if(depCommand != null) {
 			// Download any dependencies marked in the source code as "// DEP: ..."
 			for(String line:contents.split("\n")) {
@@ -96,19 +103,26 @@ public class Language {
 	private List<Callable<Process>> createDepCommand(File dir, String dep) throws IOException {
 		List<Callable<Process>> processes = new ArrayList<>();
 		
-		if(!dependencyDirs.containsKey(dep)) {
+		File dependencyDir = dependencyDirs.get(dep);
+		
+		if(dependencyDir == null) {
 			// Create directory to store dependency.
-			File dependencyDir = Files.createTempDirectory("dependency-" + dep.replaceAll("[ .]", "_").replaceAll("\\W", "") + "-").toFile();
-			dependencyDirs.put(dep, dependencyDir);
+			File newDependencyDir = Files.createTempDirectory("dependency-" + dep.replaceAll("[ .]", "_").replaceAll("\\W", "") + "-").toFile();
+			dependencyDir = newDependencyDir;
 
 			// Create process to download dependency.
 			processes.add(createCallable(new ProcessBuilder()
 				.directory(dependencyDir)
 				.command(Arrays.asList((depCommand + " " + dep).split(" +")))));
+			
+			processes.add(() -> {
+				dependencyDirs.put(dep, newDependencyDir);
+				return new NullProcess();
+			});
 		}
 		
 		// Create process to copy dependency to dir.
-		processes.add(createCopyProcess(dependencyDirs.get(dep), dir));
+		processes.add(createCopyProcess(dependencyDir, dir));
 		
 		return processes;
 	}
@@ -194,6 +208,13 @@ public class Language {
 	}
 	
 	/**
+	 * Returns the command used to initialize the project, or null if there isn't any.
+	 */
+	public String getInitCommand() {
+		return initCommand;
+	}
+	
+	/**
 	 * Returns the command used to download dependencies.
 	 */
 	public String getDepCommand() {
@@ -224,11 +245,9 @@ public class Language {
 	 * Creates a callable process that copies files from source to destination.
 	 */
 	private static Callable<Process> createCopyProcess(File source, File destination) {
-		return new Callable<Process>() {
-			public Process call() throws Exception {
-				FileUtils.copyDirectory(source, destination);
-				return new NullProcess();
-			}
+		return () -> {
+			FileUtils.copyDirectory(source, destination);
+			return new NullProcess();
 		};
 	}
 	
