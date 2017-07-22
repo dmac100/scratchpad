@@ -40,7 +40,7 @@ public class ConsoleText {
 			}
 		});
 
-		text.setFont(FontList.consolas8);
+		text.setFont(FontList.MONO_SMALL);
 
 		colorCache = new ColorCache(Display.getCurrent());
 		text.addDisposeListener(colorCache);

@@ -82,7 +82,7 @@ public class EditorText {
 			}
 		});
 		
-		styledText.setFont(FontList.consolas10);
+		styledText.setFont(FontList.MONO_NORMAL);
 
 		styledText.addDisposeListener(colorCache);
 

@@ -30,7 +30,7 @@ public class InputText {
 			}
 		});
 
-		text.setFont(FontList.consolas8);
+		text.setFont(FontList.MONO_SMALL);
 		
 		text.addFocusListener(new FocusListener() {
 			public void focusGained(FocusEvent event) {
