@@ -233,7 +233,7 @@ public class EditorText {
 		styledText.setText(text.toString());
 
 		int lines = endLine - startLine + 1;
-		styledText.setSelection(selection.x + 1, selection.y + lines);
+		styledText.setSelection(selection.x, selection.y + lines);
 	}
 	
 	private void unindentSelection() {
