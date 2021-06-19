@@ -65,7 +65,7 @@ public class Languages {
 		String name = getAttribute(languageElement, "name");
 		String extension = getAttribute(languageElement, "extension");
 		String brush = getAttribute(languageElement, "brush");
-		String compiler = getChild(languageElement, "compiler");
+		List<String> compilers = getChildren(languageElement, "compiler");
 		String run = getChild(languageElement, "run");
 		String filenameMatcher = getChild(languageElement, "filenameMatcher");
 		String template = getChild(languageElement, "template");
@@ -88,7 +88,7 @@ public class Languages {
 			name,
 			extension,
 			brushObject,
-			compiler,
+			compilers,
 			run,
 			filenameMatcher,
 			template,
@@ -129,6 +129,17 @@ public class Languages {
 		Element child = element.getChild(name);
 		if(child == null) return null;
 		return child.getTextTrim();
+	}
+	
+	/**
+	 * Returns the trimmed text of all the named children of the specified element.
+	 */
+	private List<String> getChildren(Element element, String name) {
+		List<String> children = new ArrayList<>();
+		for(Element child:element.getChildren(name)) {
+			children.add(child.getTextTrim());
+		}
+		return children;
 	}
 
 	/**

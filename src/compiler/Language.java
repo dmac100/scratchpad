@@ -23,7 +23,7 @@ public class Language {
 	private String name;
 	private String extension;
 	private Brush brush;
-	private String compiler;
+	private List<String> compilers;
 	private String run;
 	private String filenameMatcher;
 	private String template;
@@ -49,13 +49,13 @@ public class Language {
 	 * @param depCommand the command used to download dependencies.
 	 * @param defaultClasspath the classpath to use if it is not specified elsewhere.
 	 */
-	public Language(String name, String extension, Brush brush, String compiler, String run,
+	public Language(String name, String extension, Brush brush, List<String> compilers, String run,
 			String filenameMatcher, String template, String defaultInput, String standardImportJar, String initCommand, String depCommand, String defaultClasspath) {
 		
 		this.name = name;
 		this.extension = extension;
 		this.brush = brush;
-		this.compiler = compiler;
+		this.compilers = compilers;
 		this.run = run;
 		this.filenameMatcher = filenameMatcher;
 		this.template = template;
@@ -73,10 +73,10 @@ public class Language {
 	 * @param classpath the Java classpath.
 	 */
 	public List<Callable<Process>> createCompilers(File dir, String name, String contents, String classpath) throws IOException {
-		List<Callable<Process>> compilers = new ArrayList<>();
+		List<Callable<Process>> processes = new ArrayList<>();
 
 		if(initCommand != null) {
-			compilers.add(createProcess(dir, name, initCommand, classpath));
+			processes.add(createProcess(dir, name, initCommand, classpath));
 		}
 		
 		if(depCommand != null) {
@@ -85,16 +85,16 @@ public class Language {
 				Matcher matcher = Pattern.compile("// DEP: (.*)").matcher(line);
 				if(matcher.find()) {
 					String dep = matcher.group(1);
-					compilers.addAll(createDepCommand(dir, dep));
+					processes.addAll(createDepCommand(dir, dep));
 				}
 			}
 		}
 		
-		if(compiler != null) {
-			compilers.add(createProcess(dir, name, compiler, classpath));
+		for(String compiler:compilers) {
+			processes.add(createProcess(dir, name, compiler, classpath));
 		}
 		
-		return compilers;
+		return processes;
 	}
 
 	/**
