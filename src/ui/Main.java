@@ -3,25 +3,45 @@ package ui;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.dnd.*;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import controller.MainController;
-import event.*;
+import event.EnabledChangedEvent;
+import event.LanguageChangedEvent;
+import event.ModifiedEvent;
 
 public class Main {
 	private final EventBus eventBus = new EventBus();
 	private final Shell shell;
 	private final MainController mainController;
+	private final CommandList commandList = new CommandList();
 	
 	private LanguageCombo languageCombo;
 	private EditorText editorText;
@@ -73,164 +93,153 @@ public class Main {
 	}
 	
 	private void createMenuBar(final Shell shell) {
-		MenuBuilder menuBuilder = new MenuBuilder(shell);
+		MenuBuilder menuBuilder = new MenuBuilder(shell, commandList);
 		
 		menuBuilder.addMenu("&File")
-			.addItem("&Open...\tCtrl+O").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					try {
-						open();
-					} catch(Exception e) {
-						displayException(e);
-					}
+			.addItem("&Open...\tCtrl+O").addSelectionListener(() -> {
+				try {
+					open();
+				} catch(Exception e) {
+					displayException(e);
 				}
 			})
 			.setAccelerator(SWT.CONTROL | 'o')
 			.addSeparator()
-			.addItem("&Save\tCtrl+S").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					try {
-						if(mainController.getSaveEnabled()) {
-							mainController.save();
-						} else {
-							saveAs();
-						}
-					} catch(Exception e) {
-						displayException(e);
+			.addItem("&Save\tCtrl+S").addSelectionListener(() -> {
+				try {
+					if(mainController.getSaveEnabled()) {
+						mainController.save();
+					} else {
+						saveAs();
 					}
+				} catch(Exception e) {
+					displayException(e);
 				}
 			})
 			.setAccelerator(SWT.CONTROL | 's')
-			.addItem("Save &As...\tShift+Ctrl+S").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					try {
-						saveAs();
-					} catch(Exception e) {
-						displayException(e);
-					}
+			.addItem("Save &As...\tShift+Ctrl+S").addSelectionListener(() -> {
+				try {
+					saveAs();
+				} catch(Exception e) {
+					displayException(e);
 				}
 			})
 			.setAccelerator(SWT.CONTROL | SWT.SHIFT | 's')
 			.addSeparator()
-			.addItem("E&xit\tCtrl+Q").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					shell.dispose();
+			.addItem("Run Command...\tCtrl+3").addSelectionListener(() -> {
+				try {
+					runCommand();
+				} catch(Exception e) {
+					displayException(e);
 				}
+			})
+			.setAccelerator(SWT.CONTROL | '3')
+			.addSeparator()
+			.addItem("E&xit\tCtrl+Q").addSelectionListener(() -> {
+				shell.dispose();
 			})
 			.setAccelerator(SWT.CTRL | 'q');
 		
 		menuBuilder.addMenu("&Edit")
-			.addItem("&Undo\tCtrl+Z").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					try {
-						mainController.undo();
-					} catch(Exception e) {
-						displayException(e);
-					}
+			.addItem("&Undo\tCtrl+Z").addSelectionListener(() -> {
+				try {
+					mainController.undo();
+				} catch(Exception e) {
+					displayException(e);
 				}
 			})
 			.setAccelerator(SWT.CONTROL | 'z')
 			.setEnabled(mainController.undoEnabled())
-			.addItem("&Redo\tCtrl+Y").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					try {
-						mainController.redo();
-					} catch(Exception e) {
-						displayException(e);
-					}
+			.addItem("&Redo\tCtrl+Y").addSelectionListener(() -> {
+				try {
+					mainController.redo();
+				} catch(Exception e) {
+					displayException(e);
 				}
-			}).setEnabled(mainController.redoEnabled())
+			})
+			.setEnabled(mainController.redoEnabled())
 			.setAccelerator(SWT.CONTROL | 'y')
 			.addSeparator()
-			.addItem("Cu&t\tCtrl+X").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					try {
-						mainController.cut();
-					} catch(Exception e) {
-						displayException(e);
-					}
+			.addItem("Cu&t\tCtrl+X").addSelectionListener(() -> {
+				try {
+					mainController.cut();
+				} catch(Exception e) {
+					displayException(e);
 				}
 			})
 			.setAccelerator(SWT.CONTROL | 'x')
 			.setEnabled(mainController.cutEnabled())
-			.addItem("&Copy\tCtrl+C").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					try {
-						mainController.copy();
-					} catch(Exception e) {
-						displayException(e);
-					}
+			.addItem("&Copy\tCtrl+C").addSelectionListener(() -> {
+				try {
+					mainController.copy();
+				} catch(Exception e) {
+					displayException(e);
 				}
 			})
 			.setAccelerator(SWT.CONTROL | 'c')
 			.setEnabled(mainController.copyEnabled())
-			.addItem("&Paste\tCtrl+V").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					try {
-						mainController.paste();
-					} catch(Exception e) {
-						displayException(e);
-					}
+			.addItem("&Paste\tCtrl+V").addSelectionListener(() -> {
+				try {
+					mainController.paste();
+				} catch(Exception e) {
+					displayException(e);
 				}
 			})
 			.setAccelerator(SWT.CONTROL | 'v')
 			.setEnabled(mainController.pasteEnabled())
 			.addSeparator()
-			.addItem("&Find/Replace...\tCtrl+F").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					try {
-						mainController.find();
-					} catch(Exception e) {
-						displayException(e);
-					}
+			.addItem("&Find/Replace...\tCtrl+F").addSelectionListener(() -> {
+				try {
+					mainController.find();
+				} catch(Exception e) {
+					displayException(e);
 				}
 			})
 			.setAccelerator(SWT.CONTROL | 'f')
 			.addSeparator()
-			.addItem("Add &Import...\tCtrl+Shift+I").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					mainController.addImport();
-				}
+			.addItem("Add &Import...\tCtrl+Shift+I").addSelectionListener(() -> {
+				mainController.addImport();
 			})
 			.setEnabled(mainController.importEnabled())
 			.setAccelerator(SWT.CONTROL | SWT.SHIFT | 'i')
 			.addSeparator()
-			.addItem("Convert Spaces to Tabs").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					try {
-						mainController.convertSpacesToTabs();
-					} catch(Exception e) {
-						displayException(e);
-					}
+			.addItem("Convert Spaces to Tabs").addSelectionListener(() -> {
+				try {
+					mainController.convertSpacesToTabs();
+				} catch(Exception e) {
+					displayException(e);
 				}
 			})
-			.addItem("Convert Tabs to Spaces").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					try {
-						mainController.convertTabsToSpaces();
-					} catch(Exception e) {
-						displayException(e);
-					}
+			.addItem("Convert Tabs to Spaces").addSelectionListener(() -> {
+				try {
+					mainController.convertTabsToSpaces();
+				} catch(Exception e) {
+					displayException(e);
 				}
 			});
 		
 		menuBuilder.addMenu("&View")
-			.addItem("&Show Input Pane\tCtrl+I").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					setInputPaneVisible(true);
-				}
+			.addItem("&Show Input Pane\tCtrl+I").addSelectionListener(() -> {
+				setInputPaneVisible(true);
 			})
 			.setAccelerator(SWT.CTRL | 'i')
 			.setEnabled(!inputVisible)
-			.addItem("&Hide Input Pane\tCtrl+I").addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					setInputPaneVisible(false);
-				}
+			.addItem("&Hide Input Pane\tCtrl+I").addSelectionListener(() -> {
+				setInputPaneVisible(false);
 			})
 			.setAccelerator(SWT.CTRL | 'i')
 			.setEnabled(inputVisible);
 		
 		menuBuilder.build();
+	}
+	
+	public void runCommand() {
+		RunCommand runCommand = new RunCommand(shell);
+		runCommand.setSearchFunction(findText -> commandList.findCommands(findText));
+		String result = runCommand.open();
+		if(result != null) {
+			commandList.runCommand(result);
+		}
 	}
 	
 	private void open() throws IOException {
@@ -273,49 +282,36 @@ public class Main {
 		parent.setLayout(new FillLayout());
 		parent.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL));
 		
-		Button compileButton = new Button(parent, SWT.NONE);
-		compileButton.setText("Compile/Run");
-		compileButton.addSelectionListener(new SelectionAdapter() {
+		addToolbarButton(parent, "Compile/Run", () -> mainController.compile());
+		
+		Button stopButton = addToolbarButton(parent, "Stop", () -> mainController.stop());
+		mainController.setRunningChangedCallback(running -> stopButton.setEnabled(running));
+		
+		addToolbarButton(parent, "Insert Sample", () -> mainController.insertTemplate());
+		
+		this.languageCombo = new LanguageCombo(parent, mainController, commandList);
+	}
+	
+	private Button addToolbarButton(Composite parent, String name, Runnable callback) {
+		final Button button = new Button(parent, SWT.NONE);
+		button.setText(name);
+		button.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				try {
-					mainController.compile();
+					callback.run();
 				} catch(Exception e) {
 					displayException(e);
 				}
 			}
 		});
-		
-		final Button stopButton = new Button(parent, SWT.NONE);
-		stopButton.setText("Stop");
-		stopButton.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
-				try {
-					mainController.stop();
-				} catch(Exception e) {
-					displayException(e);
-				}
+		commandList.addCommand(name, () -> {
+			try {
+				callback.run();
+			} catch(Exception e) {
+				displayException(e);
 			}
 		});
-		
-		mainController.setRunningChangedCallback(new Callback<Boolean>() {
-			public void onCallback(Boolean running) {
-				stopButton.setEnabled(running);
-			}
-		});
-		
-		final Button insertTemplateButton = new Button(parent, SWT.NONE);
-		insertTemplateButton.setText("Insert Sample");
-		insertTemplateButton.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
-				try {
-					mainController.insertTemplate();
-				} catch(Exception e) {
-					displayException(e);
-				}
-			}
-		});
-		
-		this.languageCombo = new LanguageCombo(parent, mainController);
+		return button;
 	}
 	
 	private void displayMessage(String message) {

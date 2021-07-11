@@ -18,7 +18,7 @@ public class LanguageCombo {
 
 	private final Map<String, Language> languageMap = new TreeMap<>();
 	
-	public LanguageCombo(Composite parent, MainController mainController) {
+	public LanguageCombo(Composite parent, MainController mainController, CommandList commandList) {
 		this.combo = new Combo(parent, SWT.READ_ONLY);
 		this.mainController = mainController;
 		
@@ -28,6 +28,7 @@ public class LanguageCombo {
 		
 		for(String name:languageMap.keySet()) {
 			combo.add(name);
+			commandList.addCommand("Set language: " + name, () -> mainController.setLanguage(languageMap.get(name)));
 		}
 		
 		combo.addSelectionListener(new SelectionAdapter() {

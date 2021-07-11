@@ -2,8 +2,6 @@ package controller;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -12,14 +10,22 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import ui.*;
-import util.StringUtil;
-
 import com.google.common.eventbus.EventBus;
-import compiler.*;
-import compiler.Compiler;
 
-import event.*;
+import compiler.Compiler;
+import compiler.Importer;
+import compiler.Language;
+import compiler.Languages;
+import event.EnabledChangedEvent;
+import event.LanguageChangedEvent;
+import event.ModifiedEvent;
+import ui.Callback;
+import ui.ConsoleText;
+import ui.EditFunctions;
+import ui.EditorText;
+import ui.ImportDialog;
+import ui.InputText;
+import util.StringUtil;
 
 public class MainController {
 	private final Shell shell;
@@ -304,7 +310,7 @@ public class MainController {
 			return false;
 		}
 	}
-
+	
 	public void convertSpacesToTabs() {
 		editorText.convertSpacesToTabs();
 	}
