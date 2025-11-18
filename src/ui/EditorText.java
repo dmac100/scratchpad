@@ -27,6 +27,8 @@ import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontMetrics;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.GlyphMetrics;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
@@ -59,6 +61,8 @@ public class EditorText {
 	
 	private final Theme theme = new ThemeSublime();
 	private StyleRange[] syntaxHighlightingRanges = new StyleRange[0];
+
+	private final int charWidth;
 	
 	public EditorText(final EventBus eventBus, Shell shell, Composite parent) {
 		colorCache = new ColorCache(Display.getCurrent());
@@ -83,6 +87,11 @@ public class EditorText {
 		});
 		
 		styledText.setFont(FontList.MONO_NORMAL);
+
+		GC gc = new GC(styledText);
+		FontMetrics fm = gc.getFontMetrics();
+		gc.dispose();
+		this.charWidth = fm.getAverageCharWidth();
 
 		styledText.addDisposeListener(colorCache);
 
@@ -441,7 +450,7 @@ public class EditorText {
 		
 		// Update line numbers.
 		StyleRange style = new StyleRange();
-		style.metrics = new GlyphMetrics(0, 0, lineCountWidth * 8 + 5);
+		style.metrics = new GlyphMetrics(0, 0, (lineCountWidth + 3) / 4 * 4 * charWidth);
 		style.foreground = colorCache.getColor(70, 80, 90);
 		Bullet bullet = new Bullet(ST.BULLET_NUMBER, style);
 		styledText.setLineBullet(0, maxLine, null);
