@@ -15,28 +15,23 @@ public class AnsiParser {
 	private RGB[] colorTable = new RGB[20];
 	
 	public AnsiParser() {
-		// normal colors
-		this.colorTable[0] = new RGB(0, 0, 0); // black
-		this.colorTable[1] = new RGB(150, 0, 0); // red
-		this.colorTable[2] = new RGB(0, 150, 0); // green
-		this.colorTable[3] = new RGB(150, 150, 0); // yellow
-		this.colorTable[4] = new RGB(0, 0, 150); // blue
-		this.colorTable[5] = new RGB(150, 0, 150); // magenta
-		this.colorTable[6] = new RGB(0, 150, 150); // cyan
-		this.colorTable[7] = new RGB(200, 200, 200); // white
-		this.colorTable[8] = null; // not used
-		this.colorTable[9] = null; // not used
-		// bright colors
-		this.colorTable[10] = new RGB(100, 100, 100); // black
-		this.colorTable[11] = new RGB(200, 0, 0); // red
-		this.colorTable[12] = new RGB(0, 200, 0); // green
-		this.colorTable[13] = new RGB(200, 200, 0); // yellow
-		this.colorTable[14] = new RGB(0, 0, 200); // blue
-		this.colorTable[15] = new RGB(200, 0, 200); // magenta
-		this.colorTable[16] = new RGB(0, 200, 200); // cyan
-		this.colorTable[17] = new RGB(200, 200, 200); // white
-		this.colorTable[18] = null; // not used
-		this.colorTable[19] = null; // not used
+		colorTable[0] = new RGB(128, 128, 128); // black
+		colorTable[1] = new RGB(205, 49, 49); // red
+		colorTable[2] = new RGB(13, 188, 121); // green
+		colorTable[3] = new RGB(229, 229, 16); // yellow
+		colorTable[4] = new RGB(36, 114, 200); // blue
+		colorTable[5] = new RGB(188, 63, 188); // magenta
+		colorTable[6] = new RGB(17, 168, 205); // cyan
+		colorTable[7] = new RGB(229, 229, 229); // white
+
+		colorTable[10] = new RGB(102, 102, 102); // bright black
+		colorTable[11] = new RGB(241, 76, 76); // bright red
+		colorTable[12] = new RGB(35, 209, 139); // bright green
+		colorTable[13] = new RGB(245, 245, 67); // bright yellow
+		colorTable[14] = new RGB(59, 142, 234); // bright blue
+		colorTable[15] = new RGB(214, 112, 214); // bright magenta
+		colorTable[16] = new RGB(41, 184, 219); // bright cyan
+		colorTable[17] = new RGB(255, 255, 255); // bright white
 	}
 	
 	/**
