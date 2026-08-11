@@ -15,7 +15,7 @@ public class InputText {
 	private final EditFunctions editFunctions;
 	
 	public InputText(final EventBus eventBus, Composite parent) {
-		text = new StyledText(parent, SWT.WRAP | SWT.V_SCROLL);
+		text = new StyledText(parent, SWT.V_SCROLL);
 		text.setMargins(2, 2, 2, 2);
 		
 		editFunctions = new EditFunctions(text);
